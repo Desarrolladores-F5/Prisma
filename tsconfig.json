@@ -1,0 +1,17 @@
+{
+  "compilerOptions": {
+    "target": "ES2020",                       // Funciones modernas de JS
+    "module": "commonjs",                     // Requerido por Node.js
+    "moduleResolution": "node",               // Para que las rutas se resuelvan como en Node
+    "outDir": "./dist",                       // Directorio de salida para build
+    "rootDir": "./src",                       // Directorio fuente
+    "strict": true,                           // Reglas estrictas de tipado
+    "esModuleInterop": true,                  // Para permitir importaciones tipo ES6
+    "forceConsistentCasingInFileNames": true, // Evita errores por mayúsculas/minúsculas
+    "skipLibCheck": true,                     // Acelera la compilación omitiendo verificación de tipos de dependencias
+    "resolveJsonModule": true,                // Permite importar archivos JSON
+    "allowSyntheticDefaultImports": true      // Para usar `import express from 'express'` sin errores
+  },
+  "include": ["src/**/*"],
+  "exclude": ["node_modules", "dist"]
+}

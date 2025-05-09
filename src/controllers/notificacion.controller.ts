@@ -1,0 +1,69 @@
+// src/controllers/notificacion.controller.ts
+import { Request, Response } from 'express';
+import { Notificacion, Usuario, Faena } from '../models';
+
+// Obtener todas las notificaciones activas con relaciones
+export const obtenerNotificaciones = async (_req: Request, res: Response) => {
+  try {
+    const registros = await Notificacion.findAll({
+      where: { activo: true },
+      include: [
+        { model: Usuario, as: 'usuario', attributes: ['nombre', 'apellido'] },
+        { model: Faena, as: 'faena', attributes: ['nombre'] },
+      ],
+      order: [['fecha', 'DESC']],
+    });
+
+    res.json(registros);
+  } catch (error) {
+    res.status(500).json({ mensaje: '❌ Error al obtener notificaciones', error });
+  }
+};
+
+// Crear una nueva notificación
+export const crearNotificacion = async (req: Request, res: Response) => {
+  try {
+    const nueva = await Notificacion.create(req.body);
+    res.status(201).json(nueva);
+  } catch (error) {
+    res.status(400).json({ mensaje: '❌ Error al crear notificación', error });
+  }
+};
+
+// Actualizar una notificación (por ejemplo, marcar como leída)
+export const actualizarNotificacion = async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    const [actualizada] = await Notificacion.update(req.body, { where: { id } });
+
+    if (actualizada) {
+      const notificacion = await Notificacion.findByPk(id, {
+        include: [
+          { model: Usuario, as: 'usuario', attributes: ['nombre', 'apellido'] },
+          { model: Faena, as: 'faena', attributes: ['nombre'] },
+        ],
+      });
+      res.json(notificacion);
+    } else {
+      res.status(404).json({ mensaje: 'Notificación no encontrada' });
+    }
+  } catch (error) {
+    res.status(500).json({ mensaje: '❌ Error al actualizar notificación', error });
+  }
+};
+
+// Eliminar (soft delete) una notificación
+export const eliminarNotificacion = async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    const [resultado] = await Notificacion.update({ activo: false }, { where: { id } });
+
+    if (resultado) {
+      res.json({ mensaje: '✅ Notificación eliminada correctamente (soft delete)' });
+    } else {
+      res.status(404).json({ mensaje: 'Notificación no encontrada' });
+    }
+  } catch (error) {
+    res.status(500).json({ mensaje: '❌ Error al eliminar notificación', error });
+  }
+};
