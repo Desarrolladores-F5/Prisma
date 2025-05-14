@@ -1,3 +1,5 @@
+'use client';
+
 import sequelize from '../config/database';
 
 import { initRol, Rol } from './rol.model';
@@ -6,6 +8,7 @@ import { initReporte, Reporte } from './reporte.model';
 import { initFaena, Faena } from './faena.model';
 import { initAuditoria, Auditoria } from './auditoria.model';
 import { initEmpresa, Empresa } from './empresa.model';
+import { initProtocolo, Protocolo } from './protocolo.model';
 import { Capacitacion } from './capacitacion.model';
 import { Documento } from './documento.model';
 import { EPP } from './epp.model';
@@ -13,7 +16,7 @@ import { Notificacion } from './notificacion.model';
 import { MedidaCorrectiva } from './medida_correctiva.model';
 import { Inspeccion } from './inspeccion.model';
 import { FirmaDigital } from './firma_digital.model';
-import { initArchivoAdjunto, ArchivoAdjunto } from './archivoAdjunto.model'; // ✅ actualizado
+import { initArchivoAdjunto, ArchivoAdjunto } from './archivoAdjunto.model';
 
 // ✅ Inicializar modelos base
 initRol(sequelize);
@@ -22,7 +25,8 @@ initReporte(sequelize);
 initFaena(sequelize);
 initAuditoria(sequelize);
 initEmpresa(sequelize);
-initArchivoAdjunto(sequelize); // ✅ nuevo init
+initProtocolo(sequelize);
+initArchivoAdjunto(sequelize);
 
 // ✅ Relaciones entre modelos
 
@@ -75,7 +79,17 @@ Usuario.hasMany(Inspeccion, { foreignKey: 'inspector_id', as: 'inspecciones_real
 FirmaDigital.belongsTo(Usuario, { foreignKey: 'firmante_id', as: 'firmante' });
 Usuario.hasMany(FirmaDigital, { foreignKey: 'firmante_id', as: 'firmas' });
 
-// ✅ Archivos Adjuntos (actualizado con la FK correcta)
+Protocolo.belongsTo(Usuario, { foreignKey: 'responsable_id', as: 'responsable' });
+Usuario.hasMany(Protocolo, { foreignKey: 'responsable_id', as: 'protocolos_responsables' });
+
+Protocolo.belongsTo(Empresa, { foreignKey: 'empresa_id', as: 'empresa' });
+Empresa.hasMany(Protocolo, { foreignKey: 'empresa_id', as: 'protocolos' });
+
+Protocolo.belongsTo(Faena, { foreignKey: 'faena_id', as: 'faena' });
+Faena.hasMany(Protocolo, { foreignKey: 'faena_id', as: 'protocolos' });
+
+
+// ✅ Archivos Adjuntos
 ArchivoAdjunto.belongsTo(Usuario, { foreignKey: 'subido_por_id', as: 'usuario' });
 Usuario.hasMany(ArchivoAdjunto, { foreignKey: 'subido_por_id', as: 'archivos_subidos' });
 
@@ -88,6 +102,7 @@ export {
   Faena,
   Auditoria,
   Empresa,
+  Protocolo,
   Capacitacion,
   Documento,
   EPP,

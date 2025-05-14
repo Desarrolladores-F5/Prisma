@@ -35,6 +35,7 @@ import medidaRoutes from './routes/medida_correctiva.routes';
 import inspeccionRoutes from './routes/inspeccion.routes';
 import firmaRoutes from './routes/firma_digital.routes';
 import archivoAdjuntoRoutes from './routes/archivoAdjunto.routes';
+import protocoloRoutes from './routes/protocolo.routes';
 import uploadRoutes from './routes/upload.routes'; // ✅ Debe ir al final si maneja archivos
 
 // ✅ Asociar rutas
@@ -53,6 +54,7 @@ app.use('/api/medidas', medidaRoutes);
 app.use('/api/inspecciones', inspeccionRoutes);
 app.use('/api/firmas', firmaRoutes);
 app.use('/api/archivos', archivoAdjuntoRoutes);
+app.use('/api/protocolos', protocoloRoutes);
 app.use('/api/upload', uploadRoutes); // Puede manejar carga de archivos
 
 // ✅ Ruta raíz
