@@ -1,22 +1,15 @@
 // src/controllers/medida_correctiva.controller.ts
 import { Request, Response } from 'express';
 import { MedidaCorrectiva, Usuario, Documento } from '../models';
+import { registrarHistorial } from '../utils/registrarHistorial';
 
 // Obtener todas las medidas correctivas (con relaciones)
 export const obtenerMedidas = async (_req: Request, res: Response) => {
   try {
     const medidas = await MedidaCorrectiva.findAll({
       include: [
-        {
-          model: Usuario,
-          as: 'responsable',
-          attributes: ['id', 'nombre'],
-        },
-        {
-          model: Documento,
-          as: 'documento_evidencia',
-          attributes: ['id', 'nombre'],
-        },
+        { model: Usuario, as: 'responsable', attributes: ['id', 'nombre'] },
+        { model: Documento, as: 'documento_evidencia', attributes: ['id', 'nombre'] },
       ],
     });
 
@@ -31,6 +24,15 @@ export const obtenerMedidas = async (_req: Request, res: Response) => {
 export const crearMedida = async (req: Request, res: Response) => {
   try {
     const nueva = await MedidaCorrectiva.create(req.body);
+
+    await registrarHistorial({
+      entidad_tipo: 'medida_correctiva',
+      entidad_id: nueva.id,
+      usuario_id: req.body.usuario_id, // Asegúrate que venga en el body
+      accion: 'creacion',
+      detalles: nueva,
+    });
+
     res.status(201).json(nueva);
   } catch (error) {
     console.error('❌ Error al crear medida:', error);
@@ -47,18 +49,19 @@ export const actualizarMedida = async (req: Request, res: Response) => {
     if (actualizada) {
       const medida = await MedidaCorrectiva.findByPk(id, {
         include: [
-          {
-            model: Usuario,
-            as: 'responsable',
-            attributes: ['id', 'nombre'],
-          },
-          {
-            model: Documento,
-            as: 'documento_evidencia',
-            attributes: ['id', 'nombre'],
-          },
+          { model: Usuario, as: 'responsable', attributes: ['id', 'nombre'] },
+          { model: Documento, as: 'documento_evidencia', attributes: ['id', 'nombre'] },
         ],
       });
+
+      await registrarHistorial({
+        entidad_tipo: 'medida_correctiva',
+        entidad_id: Number(id),
+        usuario_id: req.body.usuario_id,
+        accion: 'actualizacion',
+        detalles: req.body,
+      });
+
       res.json(medida);
     } else {
       res.status(404).json({ mensaje: 'Medida no encontrada' });
@@ -69,17 +72,27 @@ export const actualizarMedida = async (req: Request, res: Response) => {
   }
 };
 
-// Eliminar medida correctiva (soft delete o hard delete)
+// Eliminar medida correctiva
 export const eliminarMedida = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
-    const eliminada = await MedidaCorrectiva.destroy({ where: { id } });
 
-    if (eliminada) {
-      res.json({ mensaje: '✅ Medida eliminada correctamente' });
-    } else {
-      res.status(404).json({ mensaje: 'Medida no encontrada' });
+    const medida = await MedidaCorrectiva.findByPk(id);
+    if (!medida) {
+      return res.status(404).json({ mensaje: 'Medida no encontrada' });
     }
+
+    await MedidaCorrectiva.destroy({ where: { id } });
+
+    await registrarHistorial({
+      entidad_tipo: 'medida_correctiva',
+      entidad_id: Number(id),
+      usuario_id: Number(req.body.usuario_id),
+      accion: 'eliminacion',
+      detalles: medida,
+    });
+
+    res.json({ mensaje: '✅ Medida eliminada correctamente' });
   } catch (error) {
     console.error('❌ Error al eliminar medida:', error);
     res.status(500).json({ mensaje: 'Error al eliminar medida', error });

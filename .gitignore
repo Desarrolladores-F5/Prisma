@@ -8,4 +8,4 @@
 # *.sql
 *.zip
 /dist
-build
+/build

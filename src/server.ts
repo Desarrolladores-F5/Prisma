@@ -19,45 +19,57 @@ app.use(helmet());
 // ✅ Servir archivos estáticos subidos (uploads)
 app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
 
-// ✅ Rutas importadas
-import rolRoutes from './routes/rol.routes';
-import usuarioRoutes from './routes/usuario.routes';
-import authRoutes from './routes/auth.routes';
-import reporteRoutes from './routes/reporte.routes';
-import faenaRoutes from './routes/faena.routes';
-import auditoriaRoutes from './routes/auditoria.routes';
-import empresaRoutes from './routes/empresa.routes';
-import capacitacionRoutes from './routes/capacitacion.routes';
-import eppRoutes from './routes/epp.routes';
-import notificacionRoutes from './routes/notificacion.routes';
-import documentoRoutes from './routes/documento.routes';
-import medidaRoutes from './routes/medida_correctiva.routes';
-import inspeccionRoutes from './routes/inspeccion.routes';
-import firmaRoutes from './routes/firma_digital.routes';
+// ✅ Importar rutas
 import archivoAdjuntoRoutes from './routes/archivoAdjunto.routes';
+import auditoriaRoutes from './routes/auditoria.routes';
+import authRoutes from './routes/auth.routes';
+import capacitacionRoutes from './routes/capacitacion.routes';
+import comentarioRoutes from './routes/comentario.routes';
+import documentoRoutes from './routes/documento.routes';
+import empresaRoutes from './routes/empresa.routes';
+import eppRoutes from './routes/epp.routes';
+import estadisticaRoutes from './routes/estadistica.routes';
+import faenaRoutes from './routes/faena.routes';
+import firmaRoutes from './routes/firma_digital.routes';
+import formularioRoutes from './routes/formulario.routes';
+import historialCambioRoutes from './routes/historial_cambio.routes';
+import inspeccionRoutes from './routes/inspeccion.routes';
+import medidaRoutes from './routes/medida_correctiva.routes';
+import notificacionRoutes from './routes/notificacion.routes';
 import protocoloRoutes from './routes/protocolo.routes';
-import uploadRoutes from './routes/upload.routes'; // ✅ Debe ir al final si maneja archivos
+import reporteRoutes from './routes/reporte.routes';
+import respuestaFormularioRoutes from './routes/respuesta_formulario.routes';
+import rolRoutes from './routes/rol.routes';
+import testigoRoutes from './routes/testigo.routes';
+import uploadRoutes from './routes/upload.routes';
+import usuarioRoutes from './routes/usuario.routes';
 
 // ✅ Asociar rutas
-app.use('/api/roles', rolRoutes);
-app.use('/api/usuarios', usuarioRoutes);
-app.use('/api/auth', authRoutes);
-app.use('/api/reportes', reporteRoutes);
-app.use('/api/faenas', faenaRoutes);
-app.use('/api/auditorias', auditoriaRoutes);
-app.use('/api/empresas', empresaRoutes);
-app.use('/api/capacitaciones', capacitacionRoutes);
-app.use('/api/epp', eppRoutes);
-app.use('/api/notificaciones', notificacionRoutes);
-app.use('/api/documentos', documentoRoutes);
-app.use('/api/medidas', medidaRoutes);
-app.use('/api/inspecciones', inspeccionRoutes);
-app.use('/api/firmas', firmaRoutes);
 app.use('/api/archivos', archivoAdjuntoRoutes);
+app.use('/api/auditorias', auditoriaRoutes);
+app.use('/api/auth', authRoutes);
+app.use('/api/capacitaciones', capacitacionRoutes);
+app.use('/api/comentarios', comentarioRoutes);
+app.use('/api/documentos', documentoRoutes);
+app.use('/api/empresas', empresaRoutes);
+app.use('/api/epp', eppRoutes);
+app.use('/api/estadisticas', estadisticaRoutes);
+app.use('/api/faenas', faenaRoutes);
+app.use('/api/firmas', firmaRoutes);
+app.use('/api/formularios', formularioRoutes);
+app.use('/api/historial-cambios', historialCambioRoutes);
+app.use('/api/inspecciones', inspeccionRoutes);
+app.use('/api/medidas', medidaRoutes);
+app.use('/api/notificaciones', notificacionRoutes);
 app.use('/api/protocolos', protocoloRoutes);
-app.use('/api/upload', uploadRoutes); // Puede manejar carga de archivos
+app.use('/api/reportes', reporteRoutes);
+app.use('/api/respuestas-formulario', respuestaFormularioRoutes);
+app.use('/api/roles', rolRoutes);
+app.use('/api/testigos', testigoRoutes);
+app.use('/api/upload', uploadRoutes);
+app.use('/api/usuarios', usuarioRoutes);
 
-// ✅ Ruta raíz
+// ✅ Ruta raíz de prueba
 app.get('/', (_req, res) => {
   res.send('🚀 Backend Prisma funcionando');
 });
@@ -65,7 +77,7 @@ app.get('/', (_req, res) => {
 // Puerto del servidor
 const PORT = process.env.PORT || 3001;
 
-// Conectar base de datos y arrancar servidor
+// ✅ Conexión y arranque del servidor
 sequelize.authenticate()
   .then(() => {
     console.log('✅ Conexión a la base de datos establecida correctamente.');

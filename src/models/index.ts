@@ -2,6 +2,7 @@
 
 import sequelize from '../config/database';
 
+// 🔰 Importación e inicialización de modelos
 import { initRol, Rol } from './rol.model';
 import { initUsuario, Usuario } from './usuario.model';
 import { initReporte, Reporte } from './reporte.model';
@@ -17,8 +18,14 @@ import { MedidaCorrectiva } from './medida_correctiva.model';
 import { Inspeccion } from './inspeccion.model';
 import { FirmaDigital } from './firma_digital.model';
 import { initArchivoAdjunto, ArchivoAdjunto } from './archivoAdjunto.model';
+import { initFormulario, Formulario } from './formulario.model';
+import { initRespuestaFormulario, RespuestaFormulario } from './respuesta_formulario.model';
+import { initTestigo, Testigo } from './testigo.model';
+import { initEstadistica, Estadistica } from './estadistica.model';
+import { initComentario, Comentario } from './comentario.model';
+import { initHistorialCambio, HistorialCambio } from './historial_cambio.model';
 
-// ✅ Inicializar modelos base
+// ✅ Inicialización de modelos
 initRol(sequelize);
 initUsuario(sequelize);
 initReporte(sequelize);
@@ -27,9 +34,14 @@ initAuditoria(sequelize);
 initEmpresa(sequelize);
 initProtocolo(sequelize);
 initArchivoAdjunto(sequelize);
+initFormulario(sequelize);
+initRespuestaFormulario(sequelize);
+initTestigo(sequelize);
+initEstadistica(sequelize);
+initComentario(sequelize);
+initHistorialCambio(sequelize);
 
-// ✅ Relaciones entre modelos
-
+// ✅ Relaciones entre modelos principales
 Usuario.belongsTo(Rol, { foreignKey: 'rol_id', as: 'rol' });
 Rol.hasMany(Usuario, { foreignKey: 'rol_id', as: 'usuarios' });
 
@@ -88,10 +100,41 @@ Empresa.hasMany(Protocolo, { foreignKey: 'empresa_id', as: 'protocolos' });
 Protocolo.belongsTo(Faena, { foreignKey: 'faena_id', as: 'faena' });
 Faena.hasMany(Protocolo, { foreignKey: 'faena_id', as: 'protocolos' });
 
-
 // ✅ Archivos Adjuntos
 ArchivoAdjunto.belongsTo(Usuario, { foreignKey: 'subido_por_id', as: 'usuario' });
 Usuario.hasMany(ArchivoAdjunto, { foreignKey: 'subido_por_id', as: 'archivos_subidos' });
+
+// ✅ Formularios y respuestas
+Formulario.belongsTo(Usuario, { foreignKey: 'creador_id', as: 'creador' });
+Usuario.hasMany(Formulario, { foreignKey: 'creador_id', as: 'formularios_creados' });
+
+RespuestaFormulario.belongsTo(Formulario, { foreignKey: 'formulario_id', as: 'formulario' });
+Formulario.hasMany(RespuestaFormulario, { foreignKey: 'formulario_id', as: 'respuestas' });
+
+RespuestaFormulario.belongsTo(Usuario, { foreignKey: 'usuario_id', as: 'usuario' });
+Usuario.hasMany(RespuestaFormulario, { foreignKey: 'usuario_id', as: 'respuestas_formulario' });
+
+// ✅ Testigos
+Testigo.belongsTo(Empresa, { foreignKey: 'empresa_id', as: 'empresa' });
+Empresa.hasMany(Testigo, { foreignKey: 'empresa_id', as: 'testigos' });
+
+Testigo.belongsTo(Reporte, { foreignKey: 'reporte_id', as: 'reporte' });
+Reporte.hasMany(Testigo, { foreignKey: 'reporte_id', as: 'testigos' });
+
+// ✅ Estadísticas
+Estadistica.belongsTo(Faena, { foreignKey: 'faena_id', as: 'faena' });
+Faena.hasMany(Estadistica, { foreignKey: 'faena_id', as: 'estadisticas' });
+
+Estadistica.belongsTo(Usuario, { foreignKey: 'generado_por', as: 'usuario' });
+Usuario.hasMany(Estadistica, { foreignKey: 'generado_por', as: 'estadisticas_generadas' });
+
+// ✅ Comentarios
+Comentario.belongsTo(Usuario, { foreignKey: 'autor_id', as: 'autor' });
+Usuario.hasMany(Comentario, { foreignKey: 'autor_id', as: 'comentarios' });
+
+// ✅ Historial de Cambios
+HistorialCambio.belongsTo(Usuario, { foreignKey: 'usuario_id', as: 'usuario' });
+Usuario.hasMany(HistorialCambio, { foreignKey: 'usuario_id', as: 'cambios_registrados' });
 
 // ✅ Exportación centralizada
 export {
@@ -111,4 +154,10 @@ export {
   Inspeccion,
   FirmaDigital,
   ArchivoAdjunto,
+  Formulario,
+  RespuestaFormulario,
+  Testigo,
+  Estadistica,
+  Comentario,
+  HistorialCambio,
 };
