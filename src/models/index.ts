@@ -54,6 +54,10 @@ Faena.hasMany(Reporte, { foreignKey: 'faena_id', as: 'reportes' });
 Reporte.belongsTo(Auditoria, { foreignKey: 'auditoria_id', as: 'auditoria' });
 Auditoria.hasMany(Reporte, { foreignKey: 'auditoria_id', as: 'reportes' });
 
+// ✅ RELACIÓN NUEVA: Reporte → Usuario (autor del reporte)
+Reporte.belongsTo(Usuario, { foreignKey: 'usuario_id', as: 'usuario' });
+Usuario.hasMany(Reporte, { foreignKey: 'usuario_id', as: 'reportes_creados' });
+
 Faena.belongsTo(Empresa, { foreignKey: 'empresa_id', as: 'empresa' });
 Empresa.hasMany(Faena, { foreignKey: 'empresa_id', as: 'faenas' });
 
@@ -100,11 +104,9 @@ Empresa.hasMany(Protocolo, { foreignKey: 'empresa_id', as: 'protocolos' });
 Protocolo.belongsTo(Faena, { foreignKey: 'faena_id', as: 'faena' });
 Faena.hasMany(Protocolo, { foreignKey: 'faena_id', as: 'protocolos' });
 
-// ✅ Archivos Adjuntos
 ArchivoAdjunto.belongsTo(Usuario, { foreignKey: 'subido_por_id', as: 'usuario' });
 Usuario.hasMany(ArchivoAdjunto, { foreignKey: 'subido_por_id', as: 'archivos_subidos' });
 
-// ✅ Formularios y respuestas
 Formulario.belongsTo(Usuario, { foreignKey: 'creador_id', as: 'creador' });
 Usuario.hasMany(Formulario, { foreignKey: 'creador_id', as: 'formularios_creados' });
 
@@ -114,25 +116,21 @@ Formulario.hasMany(RespuestaFormulario, { foreignKey: 'formulario_id', as: 'resp
 RespuestaFormulario.belongsTo(Usuario, { foreignKey: 'usuario_id', as: 'usuario' });
 Usuario.hasMany(RespuestaFormulario, { foreignKey: 'usuario_id', as: 'respuestas_formulario' });
 
-// ✅ Testigos
 Testigo.belongsTo(Empresa, { foreignKey: 'empresa_id', as: 'empresa' });
 Empresa.hasMany(Testigo, { foreignKey: 'empresa_id', as: 'testigos' });
 
 Testigo.belongsTo(Reporte, { foreignKey: 'reporte_id', as: 'reporte' });
 Reporte.hasMany(Testigo, { foreignKey: 'reporte_id', as: 'testigos' });
 
-// ✅ Estadísticas
 Estadistica.belongsTo(Faena, { foreignKey: 'faena_id', as: 'faena' });
 Faena.hasMany(Estadistica, { foreignKey: 'faena_id', as: 'estadisticas' });
 
 Estadistica.belongsTo(Usuario, { foreignKey: 'generado_por', as: 'usuario' });
 Usuario.hasMany(Estadistica, { foreignKey: 'generado_por', as: 'estadisticas_generadas' });
 
-// ✅ Comentarios
 Comentario.belongsTo(Usuario, { foreignKey: 'autor_id', as: 'autor' });
 Usuario.hasMany(Comentario, { foreignKey: 'autor_id', as: 'comentarios' });
 
-// ✅ Historial de Cambios
 HistorialCambio.belongsTo(Usuario, { foreignKey: 'usuario_id', as: 'usuario' });
 Usuario.hasMany(HistorialCambio, { foreignKey: 'usuario_id', as: 'cambios_registrados' });
 

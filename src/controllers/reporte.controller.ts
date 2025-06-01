@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import { Reporte, Faena, Auditoria } from '../models';
+import { Reporte, Faena, Auditoria, Usuario, Rol } from '../models';
 import jwt from 'jsonwebtoken';
 
 // Crear reporte
@@ -28,21 +28,28 @@ export const crearReporte = async (req: Request, res: Response): Promise<void> =
   }
 };
 
-// Obtener todos los reportes con faena y auditoría
+// Obtener todos los reportes con faena, auditoría y usuario con rol
 export const obtenerReportes = async (_req: Request, res: Response): Promise<void> => {
   try {
     const reportes = await Reporte.findAll({
       where: { activo: true },
       include: [
+        { model: Faena, as: 'faena' },
+        { model: Auditoria, as: 'auditoria' },
         {
-          model: Faena,
-          as: 'faena',
-        },
-        {
-          model: Auditoria,
-          as: 'auditoria',
+          model: Usuario,
+          as: 'usuario',
+          attributes: ['id', 'nombre', 'apellido', 'correo'],
+          include: [
+            {
+              model: Rol,
+              as: 'rol',
+              attributes: ['nombre']
+            }
+          ]
         }
-      ]
+      ],
+      order: [['fecha_creacion', 'DESC']]
     });
 
     res.status(200).json(reportes);

@@ -1,6 +1,5 @@
-import { DataTypes, Sequelize, Model, Optional } from 'sequelize';
+import { DataTypes, Sequelize, Model } from 'sequelize';
 
-// Interfaz para TypeScript (opcional pero recomendado)
 interface ReporteAttributes {
   id?: number;
   titulo: string;
@@ -12,10 +11,10 @@ interface ReporteAttributes {
   faena_id: number;
   auditoria_id?: number | null;
   fecha_evento?: Date;
+  fecha_creacion?: Date;
   activo?: boolean;
 }
 
-// Modelo de tipo Sequelize
 export class Reporte extends Model<ReporteAttributes> implements ReporteAttributes {
   public id!: number;
   public titulo!: string;
@@ -27,10 +26,10 @@ export class Reporte extends Model<ReporteAttributes> implements ReporteAttribut
   public faena_id!: number;
   public auditoria_id?: number | null;
   public fecha_evento?: Date;
+  public fecha_creacion?: Date;
   public activo?: boolean;
 }
 
-// Función para inicializar el modelo
 export function initReporte(sequelize: Sequelize) {
   Reporte.init({
     id: {
@@ -68,6 +67,10 @@ export function initReporte(sequelize: Sequelize) {
     },
     fecha_evento: {
       type: DataTypes.DATE,
+    },
+    fecha_creacion: {
+      type: DataTypes.DATE,
+      defaultValue: DataTypes.NOW,
     },
     activo: {
       type: DataTypes.BOOLEAN,
