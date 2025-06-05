@@ -6,11 +6,17 @@ import {
   eliminarProtocolo,
 } from '../controllers/protocolo.controller';
 
+import { validarToken } from '../middlewares/validarToken';
+import { autorizarRol } from '../middlewares/autorizarRol';
+
 const router = Router();
 
-router.get('/', obtenerProtocolos);
-router.post('/', crearProtocolo);
-router.put('/:id', actualizarProtocolo);
-router.delete('/:id', eliminarProtocolo);
+// Lectura permitida a Admin (1) y Supervisor (2)
+router.get('/', validarToken, autorizarRol(1, 2), obtenerProtocolos);
+
+// Solo Admin puede modificar
+router.post('/', validarToken, autorizarRol(1), crearProtocolo);
+router.put('/:id', validarToken, autorizarRol(1), actualizarProtocolo);
+router.delete('/:id', validarToken, autorizarRol(1), eliminarProtocolo);
 
 export default router;

@@ -20,4 +20,8 @@ router.put('/reactivar/:id', reactivarUsuario); // ✅ nueva ruta para reactivar
 // Rutas adicionales
 router.get('/conteo/total', contarUsuarios);    // GET /api/usuarios/conteo/total
 
+import { obtenerUsuariosPorFaena } from '../controllers/usuario.controller';
+router.get('/faena/:faenaId', obtenerUsuariosPorFaena); // GET /api/usuarios/faena/:faenaId
+
+
 export default router;

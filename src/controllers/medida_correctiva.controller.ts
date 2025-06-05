@@ -4,7 +4,7 @@ import { MedidaCorrectiva, Usuario, Documento } from '../models';
 import { registrarHistorial } from '../utils/registrarHistorial';
 
 // Obtener todas las medidas correctivas (con relaciones)
-export const obtenerMedidas = async (_req: Request, res: Response) => {
+export const obtenerMedidas = async (_req: Request, res: Response): Promise<void> => {
   try {
     const medidas = await MedidaCorrectiva.findAll({
       include: [
@@ -21,14 +21,14 @@ export const obtenerMedidas = async (_req: Request, res: Response) => {
 };
 
 // Crear una nueva medida correctiva
-export const crearMedida = async (req: Request, res: Response) => {
+export const crearMedida = async (req: Request, res: Response): Promise<void> => {
   try {
     const nueva = await MedidaCorrectiva.create(req.body);
 
     await registrarHistorial({
       entidad_tipo: 'medida_correctiva',
       entidad_id: nueva.id,
-      usuario_id: req.body.usuario_id, // Asegúrate que venga en el body
+      usuario_id: req.body.usuario_id,
       accion: 'creacion',
       detalles: nueva,
     });
@@ -41,7 +41,7 @@ export const crearMedida = async (req: Request, res: Response) => {
 };
 
 // Actualizar medida correctiva
-export const actualizarMedida = async (req: Request, res: Response) => {
+export const actualizarMedida = async (req: Request, res: Response): Promise<void> => {
   try {
     const { id } = req.params;
     const [actualizada] = await MedidaCorrectiva.update(req.body, { where: { id } });
@@ -73,13 +73,14 @@ export const actualizarMedida = async (req: Request, res: Response) => {
 };
 
 // Eliminar medida correctiva
-export const eliminarMedida = async (req: Request, res: Response) => {
+export const eliminarMedida = async (req: Request, res: Response): Promise<void> => {
   try {
     const { id } = req.params;
 
     const medida = await MedidaCorrectiva.findByPk(id);
     if (!medida) {
-      return res.status(404).json({ mensaje: 'Medida no encontrada' });
+      res.status(404).json({ mensaje: 'Medida no encontrada' });
+      return;
     }
 
     await MedidaCorrectiva.destroy({ where: { id } });

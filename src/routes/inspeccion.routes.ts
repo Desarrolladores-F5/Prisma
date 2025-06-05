@@ -1,3 +1,5 @@
+// src/routes/inspeccion.routes.ts
+
 import { Router } from 'express';
 import {
   obtenerInspecciones,
@@ -7,13 +9,16 @@ import {
 } from '../controllers/inspeccion.controller';
 
 import { validarToken } from '../middlewares/validarToken';
-import { esAdministrador } from '../middlewares/roles';
+import { autorizarRol } from '../middlewares/autorizarRol';
 
 const router = Router();
 
-router.get('/', validarToken, obtenerInspecciones);
-router.post('/', validarToken, esAdministrador, crearInspeccion);
-router.put('/:id', validarToken, esAdministrador, actualizarInspeccion);
-router.delete('/:id', validarToken, esAdministrador, eliminarInspeccion);
+// 🔹 Visualización permitida para Administradores (1) y Supervisores (2)
+router.get('/', validarToken, autorizarRol(1, 2), obtenerInspecciones);
+
+// 🔐 Modificaciones exclusivas del Administrador
+router.post('/', validarToken, autorizarRol(1, 2), crearInspeccion);
+router.put('/:id', validarToken, autorizarRol(1), actualizarInspeccion);
+router.delete('/:id', validarToken, autorizarRol(1), eliminarInspeccion);
 
 export default router;

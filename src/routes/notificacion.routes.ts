@@ -8,19 +8,16 @@ import {
 
 import { validarToken } from '../middlewares/validarToken';
 import { esAdministrador } from '../middlewares/roles';
+import { autorizarRol } from '../middlewares/autorizarRol'; 
 
 const router = Router();
 
-// Listar todas las notificaciones (requiere autenticación)
-router.get('/', validarToken, obtenerNotificaciones);
+// 🔹 Supervisores (rol 2) y Administradores (rol 1) pueden ver notificaciones
+router.get('/', validarToken, autorizarRol(1, 2), obtenerNotificaciones);
 
-// Crear una nueva notificación (solo administradores)
+// 🔐 Solo administradores pueden modificar
 router.post('/', validarToken, esAdministrador, crearNotificacion);
-
-// Actualizar una notificación (marcar como leída u otros cambios)
 router.put('/:id', validarToken, esAdministrador, actualizarNotificacion);
-
-// Eliminar (soft delete) una notificación (solo administradores)
 router.delete('/:id', validarToken, esAdministrador, eliminarNotificacion);
 
 export default router;

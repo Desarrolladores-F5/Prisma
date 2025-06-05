@@ -181,3 +181,34 @@ export const obtenerUsuariosActivos = async (_req: Request, res: Response) => {
     res.status(500).json({ mensaje: '❌ Error al obtener usuarios activos', error });
   }
 };
+
+// Obtener usuarios por faena (para supervisores)
+export const obtenerUsuariosPorFaena = async (req: Request, res: Response) => {
+  try {
+    const { faenaId } = req.params;
+
+    const usuarios = await Usuario.findAll({
+      where: {
+        activo: true,
+        faena_id: faenaId,
+      },
+      include: [
+        {
+          model: Rol,
+          as: 'rol',
+          attributes: ['id', 'nombre', 'descripcion'],
+        },
+        {
+          model: Faena,
+          as: 'faena',
+          attributes: ['id', 'nombre'],
+        },
+      ],
+    });
+
+    res.status(200).json(usuarios);
+  } catch (error) {
+    console.error('❌ Error al obtener usuarios por faena:', error);
+    res.status(500).json({ mensaje: '❌ Error interno al obtener usuarios por faena', error });
+  }
+};
