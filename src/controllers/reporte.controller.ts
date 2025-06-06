@@ -96,3 +96,32 @@ export const eliminarReporte = async (req: Request, res: Response): Promise<void
     res.status(500).json({ mensaje: '❌ Error al eliminar reporte', error });
   }
 };
+
+// Obtener reportes solo del usuario autenticado (trabajador)
+export const obtenerReportesDelUsuario = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const authHeader = req.headers.authorization;
+    if (!authHeader) {
+      res.status(401).json({ mensaje: 'Token no proporcionado' });
+      return;
+    }
+
+    const token = authHeader.split(' ')[1];
+    const decoded = jwt.verify(token, process.env.JWT_SECRET || 'secreto_prisma') as any;
+    const usuario_id = decoded.id;
+
+    const reportes = await Reporte.findAll({
+      where: { usuario_id, activo: true },
+      include: [
+        { model: Faena, as: 'faena', attributes: ['nombre'] },
+        { model: Auditoria, as: 'auditoria', attributes: ['tipo'] }
+      ],
+      order: [['fecha_creacion', 'DESC']]
+    });
+
+    res.status(200).json(reportes);
+  } catch (error) {
+    console.error('❌ Error al obtener mis reportes:', error);
+    res.status(500).json({ mensaje: '❌ Error al obtener mis reportes', error });
+  }
+};

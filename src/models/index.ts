@@ -10,7 +10,7 @@ import { initFaena, Faena } from './faena.model';
 import { initAuditoria, Auditoria } from './auditoria.model';
 import { initEmpresa, Empresa } from './empresa.model';
 import { initProtocolo, Protocolo } from './protocolo.model';
-import { Capacitacion } from './capacitacion.model';
+import { initCapacitacion, Capacitacion } from './capacitacion.model';
 import { Documento } from './documento.model';
 import { EPP } from './epp.model';
 import { Notificacion } from './notificacion.model';
@@ -33,6 +33,7 @@ initFaena(sequelize);
 initAuditoria(sequelize);
 initEmpresa(sequelize);
 initProtocolo(sequelize);
+initCapacitacion(sequelize); // 🔧 CORRECTA inicialización agregada
 initArchivoAdjunto(sequelize);
 initFormulario(sequelize);
 initRespuestaFormulario(sequelize);
@@ -54,7 +55,6 @@ Faena.hasMany(Reporte, { foreignKey: 'faena_id', as: 'reportes' });
 Reporte.belongsTo(Auditoria, { foreignKey: 'auditoria_id', as: 'auditoria' });
 Auditoria.hasMany(Reporte, { foreignKey: 'auditoria_id', as: 'reportes' });
 
-// ✅ RELACIÓN NUEVA: Reporte → Usuario (autor del reporte)
 Reporte.belongsTo(Usuario, { foreignKey: 'usuario_id', as: 'usuario' });
 Usuario.hasMany(Reporte, { foreignKey: 'usuario_id', as: 'reportes_creados' });
 
