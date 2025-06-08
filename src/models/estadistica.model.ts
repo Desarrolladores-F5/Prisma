@@ -63,13 +63,26 @@ export function initEstadistica(sequelize: Sequelize): void {
         allowNull: true,
       },
       faena_id: {
-        type: DataTypes.INTEGER.UNSIGNED,
-        allowNull: true,
-      },
-      generado_por: {
-        type: DataTypes.INTEGER.UNSIGNED,
-        allowNull: true,
-      },
+  type: DataTypes.INTEGER.UNSIGNED,
+  allowNull: true,
+  references: {
+    model: 'faenas',
+    key: 'id',
+  },
+  onUpdate: 'CASCADE',
+  onDelete: 'SET NULL',
+},
+generado_por: {
+  type: DataTypes.INTEGER.UNSIGNED,
+  allowNull: true,
+  references: {
+    model: 'usuarios',
+    key: 'id',
+  },
+  onUpdate: 'CASCADE',
+  onDelete: 'SET NULL',
+},
+
       fecha_generacion: {
         type: DataTypes.DATE,
         defaultValue: DataTypes.NOW,

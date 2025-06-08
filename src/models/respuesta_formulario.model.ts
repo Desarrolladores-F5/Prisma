@@ -28,16 +28,16 @@ export function initRespuestaFormulario(sequelize: Sequelize): void {
   RespuestaFormulario.init(
     {
       id: {
-        type: DataTypes.INTEGER.UNSIGNED,
+        type: DataTypes.INTEGER, // 🔄 Corrección aquí
         autoIncrement: true,
         primaryKey: true,
       },
       formulario_id: {
-        type: DataTypes.INTEGER.UNSIGNED,
+        type: DataTypes.INTEGER, 
         allowNull: false,
       },
       usuario_id: {
-        type: DataTypes.INTEGER.UNSIGNED,
+        type: DataTypes.INTEGER, 
         allowNull: true,
       },
       respuestas_json: {

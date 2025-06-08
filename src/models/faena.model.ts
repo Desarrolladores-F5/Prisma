@@ -6,7 +6,7 @@ let Faena: ModelStatic<Model>;
 export function initFaena(sequelize: Sequelize) {
   Faena = sequelize.define('faena', {
     id: {
-      type: DataTypes.INTEGER,
+      type: DataTypes.INTEGER.UNSIGNED,
       autoIncrement: true,
       primaryKey: true,
     },

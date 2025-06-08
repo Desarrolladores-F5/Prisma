@@ -26,7 +26,7 @@ export function initFormulario(sequelize: Sequelize): void {
   Formulario.init(
     {
       id: {
-        type: DataTypes.INTEGER.UNSIGNED,
+        type: DataTypes.INTEGER, 
         autoIncrement: true,
         primaryKey: true,
       },
@@ -43,7 +43,7 @@ export function initFormulario(sequelize: Sequelize): void {
         allowNull: false,
       },
       creador_id: {
-        type: DataTypes.INTEGER.UNSIGNED,
+        type: DataTypes.INTEGER, 
         allowNull: false,
       },
       fecha_creacion: {

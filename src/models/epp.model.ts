@@ -50,9 +50,16 @@ export const EPP = sequelize.define<EPPModel>('epp', {
     allowNull: true,
   },
   faena_id: {
-    type: DataTypes.INTEGER,
-    allowNull: true,
+  type: DataTypes.INTEGER.UNSIGNED,
+  allowNull: true,
+  references: {
+    model: 'faenas',
+    key: 'id',
   },
+  onUpdate: 'CASCADE',
+  onDelete: 'SET NULL',
+},
+
   fecha_entrega: {
     type: DataTypes.DATE,
     allowNull: false,

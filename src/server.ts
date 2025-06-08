@@ -44,6 +44,11 @@ import testigoRoutes from './routes/testigo.routes';
 import uploadRoutes from './routes/upload.routes';
 import usuarioRoutes from './routes/usuario.routes';
 
+// ✅ Nuevas rutas para módulo de exámenes
+import examenRoutes from './routes/examen.routes';
+import preguntaExamenRoutes from './routes/pregunta_examen.routes';
+import respuestaExamenRoutes from './routes/respuesta_examen.routes';
+
 // ✅ Asociar rutas
 app.use('/api/archivos', archivoAdjuntoRoutes);
 app.use('/api/auditorias', auditoriaRoutes);
@@ -68,6 +73,11 @@ app.use('/api/roles', rolRoutes);
 app.use('/api/testigos', testigoRoutes);
 app.use('/api/upload', uploadRoutes);
 app.use('/api/usuarios', usuarioRoutes);
+
+// ✅ Asociar rutas de exámenes
+app.use('/api/examenes', examenRoutes);
+app.use('/api/preguntas-examen', preguntaExamenRoutes);
+app.use('/api/respuestas-examen', respuestaExamenRoutes);
 
 // ✅ Ruta raíz de prueba
 app.get('/', (_req, res) => {

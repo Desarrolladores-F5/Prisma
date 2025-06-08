@@ -11,7 +11,7 @@ export interface UsuarioAttributes {
   telefono?: string;
   fecha_nacimiento?: Date;
   fecha_contrato?: Date;
-  tipo_contrato?: string; // Opcional
+  tipo_contrato?: string; 
   rol_id: number;
   faena_id?: number;
   contraseña_hash: string;

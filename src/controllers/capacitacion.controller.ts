@@ -1,9 +1,6 @@
 // src/controllers/capacitacion.controller.ts
 import { Request, Response } from 'express';
-import { Capacitacion } from '../models';
-import { Usuario } from '../models/usuario.model';
-import { Faena } from '../models/faena.model';
-import { Documento } from '../models/documento.model';
+import { Capacitacion, Usuario, Faena, Documento, Examen } from '../models';
 
 export const obtenerCapacitaciones = async (_req: Request, res: Response) => {
   try {
@@ -13,6 +10,7 @@ export const obtenerCapacitaciones = async (_req: Request, res: Response) => {
         { model: Usuario, as: 'usuario', attributes: ['id', 'nombre', 'apellido'] },
         { model: Faena, as: 'faena', attributes: ['id', 'nombre'] },
         { model: Documento, as: 'documento', attributes: ['id', 'nombre', 'url'] },
+        { model: Examen, as: 'examen', attributes: ['id', 'titulo', 'descripcion'] } // ✅ añadido
       ]
     });
     res.json(capacitaciones);
@@ -69,6 +67,7 @@ export const obtenerCapacitacionesDisponibles = async (_req: Request, res: Respo
         { model: Usuario, as: 'usuario', attributes: ['id', 'nombre', 'apellido'] },
         { model: Faena, as: 'faena', attributes: ['id', 'nombre'] },
         { model: Documento, as: 'documento', attributes: ['id', 'nombre', 'url'] },
+        { model: Examen, as: 'examen', attributes: ['id', 'titulo', 'descripcion'] } // ✅ añadido también aquí
       ],
     });
 

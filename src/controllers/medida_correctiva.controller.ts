@@ -3,13 +3,13 @@ import { Request, Response } from 'express';
 import { MedidaCorrectiva, Usuario, Documento } from '../models';
 import { registrarHistorial } from '../utils/registrarHistorial';
 
-// Obtener todas las medidas correctivas (con relaciones)
+// ✅ Obtener todas las medidas correctivas (con relaciones)
 export const obtenerMedidas = async (_req: Request, res: Response): Promise<void> => {
   try {
     const medidas = await MedidaCorrectiva.findAll({
       include: [
         { model: Usuario, as: 'responsable', attributes: ['id', 'nombre'] },
-        { model: Documento, as: 'documento_evidencia', attributes: ['id', 'nombre'] },
+        { model: Documento, as: 'evidencia', attributes: ['id', 'nombre'] }, // ✅ alias corregido
       ],
     });
 
@@ -20,7 +20,7 @@ export const obtenerMedidas = async (_req: Request, res: Response): Promise<void
   }
 };
 
-// Crear una nueva medida correctiva
+// ✅ Crear una nueva medida correctiva
 export const crearMedida = async (req: Request, res: Response): Promise<void> => {
   try {
     const nueva = await MedidaCorrectiva.create(req.body);
@@ -40,7 +40,7 @@ export const crearMedida = async (req: Request, res: Response): Promise<void> =>
   }
 };
 
-// Actualizar medida correctiva
+// ✅ Actualizar medida correctiva
 export const actualizarMedida = async (req: Request, res: Response): Promise<void> => {
   try {
     const { id } = req.params;
@@ -50,7 +50,7 @@ export const actualizarMedida = async (req: Request, res: Response): Promise<voi
       const medida = await MedidaCorrectiva.findByPk(id, {
         include: [
           { model: Usuario, as: 'responsable', attributes: ['id', 'nombre'] },
-          { model: Documento, as: 'documento_evidencia', attributes: ['id', 'nombre'] },
+          { model: Documento, as: 'evidencia', attributes: ['id', 'nombre'] }, // ✅ alias corregido
         ],
       });
 
@@ -72,7 +72,7 @@ export const actualizarMedida = async (req: Request, res: Response): Promise<voi
   }
 };
 
-// Eliminar medida correctiva
+// ✅ Eliminar medida correctiva
 export const eliminarMedida = async (req: Request, res: Response): Promise<void> => {
   try {
     const { id } = req.params;

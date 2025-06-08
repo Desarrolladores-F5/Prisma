@@ -60,11 +60,11 @@ export function initTestigo(sequelize: Sequelize): void {
         allowNull: true,
       },
       empresa_id: {
-        type: DataTypes.INTEGER.UNSIGNED,
+        type: DataTypes.INTEGER,
         allowNull: true,
       },
       reporte_id: {
-        type: DataTypes.INTEGER.UNSIGNED,
+        type: DataTypes.INTEGER,
         allowNull: false,
       },
       declaracion: {

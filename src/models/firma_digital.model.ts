@@ -1,5 +1,4 @@
-import { DataTypes, Model, Optional } from 'sequelize';
-import sequelize from '../config/database';
+import { DataTypes, Model, Optional, Sequelize } from 'sequelize';
 
 export interface FirmaDigitalAttributes {
   id: number;
@@ -10,13 +9,11 @@ export interface FirmaDigitalAttributes {
   metadata?: object;
 }
 
-interface FirmaDigitalCreationAttributes
+export interface FirmaDigitalCreationAttributes
   extends Optional<FirmaDigitalAttributes, 'id' | 'fecha' | 'metadata'> {}
 
-export class FirmaDigitalModel
-  extends Model<FirmaDigitalAttributes, FirmaDigitalCreationAttributes>
-  implements FirmaDigitalAttributes
-{
+export class FirmaDigital extends Model<FirmaDigitalAttributes, FirmaDigitalCreationAttributes>
+  implements FirmaDigitalAttributes {
   public id!: number;
   public firmante_id!: number;
   public fecha!: Date;
@@ -25,33 +22,47 @@ export class FirmaDigitalModel
   public metadata?: object;
 }
 
-export const FirmaDigital = sequelize.define<FirmaDigitalModel>('firma_digital', {
-  id: {
-    type: DataTypes.INTEGER,
-    autoIncrement: true,
-    primaryKey: true,
-  },
-  firmante_id: {
-    type: DataTypes.INTEGER,
-    allowNull: false,
-  },
-  fecha: {
-    type: DataTypes.DATE,
-    defaultValue: DataTypes.NOW,
-  },
-  hash_firma: {
-    type: DataTypes.TEXT,
-    allowNull: false,
-  },
-  tipo_firma: {
-    type: DataTypes.STRING,
-    allowNull: false,
-  },
-  metadata: {
-    type: DataTypes.JSON,
-    allowNull: true,
-  },
-}, {
-  tableName: 'firmas_digitales',
-  timestamps: false,
-});
+export function initFirmaDigital(sequelize: Sequelize): void {
+  FirmaDigital.init(
+    {
+      id: {
+        type: DataTypes.INTEGER.UNSIGNED,
+        autoIncrement: true,
+        primaryKey: true,
+      },
+      firmante_id: {
+        type: DataTypes.INTEGER.UNSIGNED,
+        allowNull: false,
+        references: {
+          model: 'usuarios',
+          key: 'id',
+        },
+        onUpdate: 'CASCADE',
+        onDelete: 'CASCADE', // Borra la firma si se borra el usuario firmante
+      },
+      fecha: {
+        type: DataTypes.DATE,
+        allowNull: false,
+        defaultValue: DataTypes.NOW,
+      },
+      hash_firma: {
+        type: DataTypes.TEXT,
+        allowNull: false,
+      },
+      tipo_firma: {
+        type: DataTypes.STRING(100),
+        allowNull: false,
+      },
+      metadata: {
+        type: DataTypes.JSON,
+        allowNull: true,
+      },
+    },
+    {
+      sequelize,
+      modelName: 'FirmaDigital',
+      tableName: 'firmas_digitales',
+      timestamps: false,
+    }
+  );
+}

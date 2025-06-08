@@ -13,9 +13,12 @@ export interface NotificacionAttributes {
   activo: boolean;
 }
 
-interface NotificacionCreationAttributes extends Optional<NotificacionAttributes, 'id' | 'origen' | 'faena_id' | 'fecha'> {}
+interface NotificacionCreationAttributes
+  extends Optional<NotificacionAttributes, 'id' | 'origen' | 'faena_id' | 'fecha'> {}
 
-export class NotificacionModel extends Model<NotificacionAttributes, NotificacionCreationAttributes> implements NotificacionAttributes {
+export class NotificacionModel
+  extends Model<NotificacionAttributes, NotificacionCreationAttributes>
+  implements NotificacionAttributes {
   public id!: number;
   public mensaje!: string;
   public tipo!: string;
@@ -29,7 +32,7 @@ export class NotificacionModel extends Model<NotificacionAttributes, Notificacio
 
 export const Notificacion = sequelize.define<NotificacionModel>('notificacion', {
   id: {
-    type: DataTypes.INTEGER,
+    type: DataTypes.INTEGER.UNSIGNED,
     autoIncrement: true,
     primaryKey: true,
   },
@@ -38,20 +41,32 @@ export const Notificacion = sequelize.define<NotificacionModel>('notificacion', 
     allowNull: false,
   },
   tipo: {
-    type: DataTypes.STRING,
+    type: DataTypes.STRING(100),
     allowNull: false,
   },
   usuario_id: {
-    type: DataTypes.INTEGER,
+    type: DataTypes.INTEGER.UNSIGNED,
     allowNull: false,
+    references: {
+      model: 'usuarios',
+      key: 'id',
+    },
+    onUpdate: 'CASCADE',
+    onDelete: 'CASCADE',
   },
   origen: {
-    type: DataTypes.STRING,
+    type: DataTypes.STRING(100),
     allowNull: true,
   },
   faena_id: {
-    type: DataTypes.INTEGER,
+    type: DataTypes.INTEGER.UNSIGNED,
     allowNull: true,
+    references: {
+      model: 'faenas',
+      key: 'id',
+    },
+    onUpdate: 'CASCADE',
+    onDelete: 'SET NULL',
   },
   fecha: {
     type: DataTypes.DATE,

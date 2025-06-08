@@ -14,9 +14,13 @@ export interface InspeccionAttributes {
   activo: boolean;
 }
 
-interface InspeccionCreationAttributes extends Optional<InspeccionAttributes, 'id' | 'observaciones' | 'fecha_creacion'> {}
+export interface InspeccionCreationAttributes
+  extends Optional<InspeccionAttributes, 'id' | 'observaciones' | 'fecha_creacion' | 'inspector_id'> {} // ✅ Marcar como opcional
 
-export class InspeccionModel extends Model<InspeccionAttributes, InspeccionCreationAttributes> implements InspeccionAttributes {
+export class InspeccionModel
+  extends Model<InspeccionAttributes, InspeccionCreationAttributes>
+  implements InspeccionAttributes
+{
   public id!: number;
   public fecha!: Date;
   public faena_id!: number;
@@ -31,7 +35,7 @@ export class InspeccionModel extends Model<InspeccionAttributes, InspeccionCreat
 
 export const Inspeccion = sequelize.define<InspeccionModel>('inspeccion', {
   id: {
-    type: DataTypes.INTEGER,
+    type: DataTypes.INTEGER.UNSIGNED,
     autoIncrement: true,
     primaryKey: true,
   },
@@ -40,15 +44,27 @@ export const Inspeccion = sequelize.define<InspeccionModel>('inspeccion', {
     allowNull: false,
   },
   faena_id: {
-    type: DataTypes.INTEGER,
+    type: DataTypes.INTEGER.UNSIGNED,
     allowNull: false,
+    references: {
+      model: 'faenas',
+      key: 'id',
+    },
+    onUpdate: 'CASCADE',
+    onDelete: 'SET NULL',
   },
   inspector_id: {
     type: DataTypes.INTEGER,
-    allowNull: false,
+    allowNull: true, // ✅ Corregido aquí
+    references: {
+      model: 'usuarios',
+      key: 'id',
+    },
+    onUpdate: 'CASCADE',
+    onDelete: 'SET NULL',
   },
   tipo: {
-    type: DataTypes.STRING,
+    type: DataTypes.STRING(100),
     allowNull: false,
   },
   descripcion: {
@@ -65,10 +81,12 @@ export const Inspeccion = sequelize.define<InspeccionModel>('inspeccion', {
   },
   fecha_creacion: {
     type: DataTypes.DATE,
+    allowNull: false,
     defaultValue: DataTypes.NOW,
   },
   activo: {
     type: DataTypes.BOOLEAN,
+    allowNull: false,
     defaultValue: true,
   },
 }, {

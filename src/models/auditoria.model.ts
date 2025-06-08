@@ -17,7 +17,7 @@ export function initAuditoria(sequelize: Sequelize) {
       allowNull: false,
     },
     faena_id: {
-      type: DataTypes.INTEGER,
+      type: DataTypes.INTEGER.UNSIGNED,
       allowNull: false,
     },
     auditor_id: {

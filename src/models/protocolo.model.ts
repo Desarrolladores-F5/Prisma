@@ -12,16 +12,18 @@ export interface ProtocoloAttributes {
   fecha_emision?: Date;
   fecha_vigencia?: Date;
   fecha_creacion?: Date;
-  activo: boolean; // ✅ CAMPO AGREGADO
+  activo: boolean;
 }
 
 export interface ProtocoloCreationAttributes extends Optional<
   ProtocoloAttributes,
-  'id' | 'descripcion' | 'version' | 'vigente' | 'fecha_emision' | 'fecha_vigencia' | 'fecha_creacion' | 'activo' // ✅ INCLUIDO EN OPTIONAL
+  'id' | 'descripcion' | 'version' | 'vigente' | 'fecha_emision' | 'fecha_vigencia' | 'fecha_creacion' | 'activo'
 > {}
 
-export class Protocolo extends Model<ProtocoloAttributes, ProtocoloCreationAttributes>
-  implements ProtocoloAttributes {
+export class Protocolo
+  extends Model<ProtocoloAttributes, ProtocoloCreationAttributes>
+  implements ProtocoloAttributes
+{
   public id!: number;
   public nombre!: string;
   public descripcion?: string;
@@ -33,19 +35,19 @@ export class Protocolo extends Model<ProtocoloAttributes, ProtocoloCreationAttri
   public fecha_emision?: Date;
   public fecha_vigencia?: Date;
   public fecha_creacion?: Date;
-  public activo!: boolean; // ✅ PROPIEDAD EN LA CLASE
+  public activo!: boolean;
 }
 
 export function initProtocolo(sequelize: Sequelize): void {
   Protocolo.init(
     {
       id: {
-        type: DataTypes.INTEGER,
+        type: DataTypes.INTEGER.UNSIGNED,
         autoIncrement: true,
         primaryKey: true,
       },
       nombre: {
-        type: DataTypes.STRING,
+        type: DataTypes.STRING(150),
         allowNull: false,
       },
       descripcion: {
@@ -57,16 +59,28 @@ export function initProtocolo(sequelize: Sequelize): void {
         allowNull: true,
       },
       responsable_id: {
-        type: DataTypes.INTEGER,
+        type: DataTypes.INTEGER.UNSIGNED,
         allowNull: false,
+        references: {
+          model: 'usuarios',
+          key: 'id',
+        },
       },
       empresa_id: {
-        type: DataTypes.INTEGER,
+        type: DataTypes.INTEGER.UNSIGNED,
         allowNull: false,
+        references: {
+          model: 'empresas',
+          key: 'id',
+        },
       },
       faena_id: {
-        type: DataTypes.INTEGER,
+        type: DataTypes.INTEGER.UNSIGNED,
         allowNull: false,
+        references: {
+          model: 'faenas',
+          key: 'id',
+        },
       },
       vigente: {
         type: DataTypes.BOOLEAN,
@@ -83,6 +97,7 @@ export function initProtocolo(sequelize: Sequelize): void {
       },
       fecha_creacion: {
         type: DataTypes.DATE,
+        allowNull: true,
         defaultValue: DataTypes.NOW,
       },
       activo: {
