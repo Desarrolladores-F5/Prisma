@@ -5,13 +5,15 @@ export interface RespuestaExamenAttributes {
   usuario_id: number;
   examen_id: number;
   pregunta_id: number;
-  respuesta_entregada: number;
+  respuesta_entregada: string;
   correcta: boolean;
   fecha_respuesta?: Date;
+  porcentaje_aprobacion?: number;
+  aprobado?: boolean;
 }
 
 export interface RespuestaExamenCreationAttributes
-  extends Optional<RespuestaExamenAttributes, 'id' | 'fecha_respuesta'> {}
+  extends Optional<RespuestaExamenAttributes, 'id' | 'fecha_respuesta' | 'porcentaje_aprobacion' | 'aprobado'> {}
 
 export class RespuestaExamen extends Model<
   RespuestaExamenAttributes,
@@ -21,9 +23,11 @@ export class RespuestaExamen extends Model<
   public usuario_id!: number;
   public examen_id!: number;
   public pregunta_id!: number;
-  public respuesta_entregada!: number;
+  public respuesta_entregada!: string;
   public correcta!: boolean;
   public fecha_respuesta!: Date;
+  public porcentaje_aprobacion!: number;
+  public aprobado!: boolean;
 }
 
 export function initRespuestaExamen(sequelize: Sequelize): void {
@@ -47,7 +51,7 @@ export function initRespuestaExamen(sequelize: Sequelize): void {
         allowNull: false,
       },
       respuesta_entregada: {
-        type: DataTypes.INTEGER,
+        type: DataTypes.STRING,
         allowNull: false,
       },
       correcta: {
@@ -57,6 +61,16 @@ export function initRespuestaExamen(sequelize: Sequelize): void {
       fecha_respuesta: {
         type: DataTypes.DATE,
         defaultValue: DataTypes.NOW,
+      },
+      porcentaje_aprobacion: {
+        type: DataTypes.INTEGER,
+        allowNull: true,
+        defaultValue: 0,
+      },
+      aprobado: {
+        type: DataTypes.BOOLEAN,
+        allowNull: true,
+        defaultValue: false,
       },
     },
     {

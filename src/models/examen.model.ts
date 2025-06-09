@@ -1,4 +1,5 @@
 import { DataTypes, Model, Optional, Sequelize } from 'sequelize';
+import { Capacitacion } from './capacitacion.model'; 
 
 export interface ExamenAttributes {
   id: number;
@@ -20,6 +21,9 @@ export class Examen extends Model<ExamenAttributes, ExamenCreationAttributes>
   public capacitacion_id!: number;
   public fecha_creacion?: Date;
   public activo!: boolean;
+
+  // ✅ Añadir referencia explícita a la relación para evitar errores TS
+  public capacitacion?: Capacitacion;
 }
 
 export function initExamen(sequelize: Sequelize): void {
@@ -46,7 +50,7 @@ export function initExamen(sequelize: Sequelize): void {
           key: 'id',
         },
         onUpdate: 'CASCADE',
-        onDelete: 'CASCADE', // Se elimina el examen si se elimina la capacitación
+        onDelete: 'CASCADE',
       },
       fecha_creacion: {
         type: DataTypes.DATE,
