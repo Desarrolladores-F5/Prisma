@@ -2,7 +2,7 @@ import { Request, Response } from 'express';
 import { Examen, Capacitacion } from '../models';
 
 // ✅ Obtener todos los exámenes
-export const obtenerExamenes = async (_req: Request, res: Response) => {
+export const obtenerExamenes = async (_req: Request, res: Response): Promise<void> => {
   try {
     const examenes = await Examen.findAll({
       include: [
@@ -15,13 +15,13 @@ export const obtenerExamenes = async (_req: Request, res: Response) => {
       order: [['id', 'ASC']],
     });
     res.json(examenes);
-  } catch (error) {
-    res.status(500).json({ mensaje: '❌ Error al obtener los exámenes', error });
+  } catch (error: any) {
+    res.status(500).json({ mensaje: '❌ Error al obtener los exámenes', error: error.message });
   }
 };
 
 // ✅ Obtener examen por ID
-export const obtenerExamenPorId = async (req: Request, res: Response) => {
+export const obtenerExamenPorId = async (req: Request, res: Response): Promise<void> => {
   const { id } = req.params;
 
   try {
@@ -35,13 +35,13 @@ export const obtenerExamenPorId = async (req: Request, res: Response) => {
     }
 
     res.json(examen);
-  } catch (error) {
-    res.status(500).json({ mensaje: '❌ Error al obtener el examen', error });
+  } catch (error: any) {
+    res.status(500).json({ mensaje: '❌ Error al obtener el examen', error: error.message });
   }
 };
 
 // ✅ Obtener examen por ID de capacitación
-export const obtenerExamenPorCapacitacion = async (req: Request, res: Response) => {
+export const obtenerExamenPorCapacitacion = async (req: Request, res: Response): Promise<void> => {
   const { capacitacion_id } = req.params;
 
   try {
@@ -56,13 +56,13 @@ export const obtenerExamenPorCapacitacion = async (req: Request, res: Response) 
     }
 
     res.json(examen);
-  } catch (error) {
-    res.status(500).json({ mensaje: '❌ Error al buscar examen por capacitación', error });
+  } catch (error: any) {
+    res.status(500).json({ mensaje: '❌ Error al buscar examen por capacitación', error: error.message });
   }
 };
 
 // ✅ Crear nuevo examen
-export const crearExamen = async (req: Request, res: Response) => {
+export const crearExamen = async (req: Request, res: Response): Promise<void> => {
   const { capacitacion_id, titulo, descripcion } = req.body;
 
   try {
@@ -70,17 +70,17 @@ export const crearExamen = async (req: Request, res: Response) => {
       capacitacion_id,
       titulo,
       descripcion,
-      activo: true, // campo obligatorio
+      activo: true,
     });
 
     res.status(201).json(nuevoExamen);
-  } catch (error) {
-    res.status(500).json({ mensaje: '❌ Error al crear el examen', error });
+  } catch (error: any) {
+    res.status(500).json({ mensaje: '❌ Error al crear el examen', error: error.message });
   }
 };
 
 // ✅ Actualizar examen existente
-export const actualizarExamen = async (req: Request, res: Response) => {
+export const actualizarExamen = async (req: Request, res: Response): Promise<void> => {
   const { id } = req.params;
   const { titulo, descripcion } = req.body;
 
@@ -93,15 +93,14 @@ export const actualizarExamen = async (req: Request, res: Response) => {
     }
 
     await examen.update({ titulo, descripcion });
-
     res.json(examen);
-  } catch (error) {
-    res.status(500).json({ mensaje: '❌ Error al actualizar el examen', error });
+  } catch (error: any) {
+    res.status(500).json({ mensaje: '❌ Error al actualizar el examen', error: error.message });
   }
 };
 
 // ✅ Eliminar examen
-export const eliminarExamen = async (req: Request, res: Response) => {
+export const eliminarExamen = async (req: Request, res: Response): Promise<void> => {
   const { id } = req.params;
 
   try {
@@ -114,7 +113,8 @@ export const eliminarExamen = async (req: Request, res: Response) => {
 
     await examen.destroy();
     res.json({ mensaje: '✅ Examen eliminado correctamente' });
-  } catch (error) {
-    res.status(500).json({ mensaje: '❌ Error al eliminar el examen', error });
+  } catch (error: any) {
+    console.error('❌ Error en backend al eliminar examen:', error.message);
+    res.status(500).json({ mensaje: '❌ Error al eliminar el examen', error: error.message });
   }
 };

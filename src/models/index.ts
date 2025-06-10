@@ -92,7 +92,14 @@ Examen.hasMany(PreguntaExamen, {
 });
 
 RespuestaExamen.belongsTo(Examen, { foreignKey: 'examen_id', as: 'examen' });
-Examen.hasMany(RespuestaExamen, { foreignKey: 'examen_id', as: 'respuestas' });
+
+Examen.hasMany(RespuestaExamen, {
+  foreignKey: 'examen_id',
+  as: 'respuestas',
+  onDelete: 'CASCADE',
+  hooks: true
+});
+
 
 RespuestaExamen.belongsTo(PreguntaExamen, { foreignKey: 'pregunta_id', as: 'pregunta' });
 PreguntaExamen.hasMany(RespuestaExamen, { foreignKey: 'pregunta_id', as: 'respuestas' });
