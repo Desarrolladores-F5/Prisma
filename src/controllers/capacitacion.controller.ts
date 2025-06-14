@@ -280,3 +280,58 @@ export const obtenerResultadoExamen = async (req: Request, res: Response): Promi
     res.status(500).json({ mensaje: '❌ Error interno al obtener resultado del examen', error });
   }
 };
+
+// ✅ Obtener resumen de respuestas por capacitación (uso administrativo)
+export const obtenerRespuestasDeCapacitacion = async (req: Request, res: Response): Promise<void> => {
+  const capacitacionId = Number(req.params.id);
+
+  if (isNaN(capacitacionId)) {
+    res.status(400).json({ mensaje: '❌ ID de capacitación inválido' });
+    return;
+  }
+
+  try {
+    const examen = await Examen.findOne({ where: { capacitacion_id: capacitacionId } });
+
+    if (!examen) {
+      res.status(404).json({ mensaje: '❌ No se encontró examen para esta capacitación' });
+      return;
+    }
+
+    const respuestas = await RespuestaExamen.findAll({
+      where: { examen_id: examen.id },
+      include: [
+        {
+          association: 'usuario',
+          attributes: ['id', 'nombre', 'apellido', 'rut', 'faena_id']
+        }
+      ],
+      order: [['usuario_id', 'ASC'], ['fecha_respuesta', 'DESC']]
+    });
+
+    const resumenMap = new Map<number, any>();
+
+  for (const r of respuestas) {
+    if (!resumenMap.has(r.usuario_id)) {
+    const usuario = r.get('usuario') as any;
+
+    resumenMap.set(r.usuario_id, {
+      usuario_id: r.usuario_id,
+      nombre: usuario?.nombre,
+      apellido: usuario?.apellido,
+      rut: usuario?.rut,
+      faena_id: usuario?.faena_id,
+      fecha_respuesta: r.fecha_respuesta,
+      porcentaje_aprobacion: r.porcentaje_aprobacion,
+      aprobado: r.aprobado,
+    });
+  }
+}
+
+
+    res.json(Array.from(resumenMap.values()));
+  } catch (error) {
+    console.error('❌ Error al obtener respuestas de capacitación:', error);
+    res.status(500).json({ mensaje: '❌ Error interno al obtener respuestas', error });
+  }
+};

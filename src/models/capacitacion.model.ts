@@ -7,13 +7,13 @@ export interface CapacitacionAttributes {
   fecha: Date;
   usuario_id: number;
   faena_id: number;
-  asistencia: any;
   documento_id?: number;
   activo: boolean;
   fecha_creacion?: Date;
 }
 
-interface CapacitacionCreationAttributes extends Optional<CapacitacionAttributes, 'id' | 'documento_id' | 'fecha_creacion'> {}
+interface CapacitacionCreationAttributes
+  extends Optional<CapacitacionAttributes, 'id' | 'documento_id' | 'fecha_creacion'> {}
 
 // ✅ Clase principal
 export class Capacitacion extends Model<CapacitacionAttributes, CapacitacionCreationAttributes>
@@ -24,7 +24,6 @@ export class Capacitacion extends Model<CapacitacionAttributes, CapacitacionCrea
   public fecha!: Date;
   public usuario_id!: number;
   public faena_id!: number;
-  public asistencia!: any;
   public documento_id?: number;
   public activo!: boolean;
   public readonly fecha_creacion!: Date;
@@ -57,10 +56,6 @@ export function initCapacitacion(sequelize: Sequelize) {
       },
       faena_id: {
         type: DataTypes.INTEGER.UNSIGNED,
-        allowNull: false,
-      },
-      asistencia: {
-        type: DataTypes.JSON,
         allowNull: false,
       },
       documento_id: {
