@@ -14,7 +14,7 @@ import { initProtocolo, Protocolo } from './protocolo.model';
 import { initCapacitacion, Capacitacion } from './capacitacion.model';
 import { initExamen, Examen } from './examen.model';
 import { initPreguntaExamen, PreguntaExamen } from './pregunta_examen.model';
-import { initRespuestaExamen, RespuestaExamen } from './respuesta_examen.model'; // ✅ CORREGIDO
+import { initRespuestaExamen, RespuestaExamen } from './respuesta_examen.model';
 import { Documento } from './documento.model';
 import { EPP } from './epp.model';
 import { Notificacion } from './notificacion.model';
@@ -29,7 +29,7 @@ import { initEstadistica, Estadistica } from './estadistica.model';
 import { initComentario, Comentario } from './comentario.model';
 import { initHistorialCambio, HistorialCambio } from './historial_cambio.model';
 
-
+// Inicialización de modelos
 initRol(sequelize);
 initUsuario(sequelize);
 initReporte(sequelize);
@@ -49,7 +49,8 @@ initEstadistica(sequelize);
 initComentario(sequelize);
 initHistorialCambio(sequelize);
 
-// ✅ Definición de relaciones
+// ✅ Relaciones generales
+
 Usuario.belongsTo(Rol, { foreignKey: 'rol_id', as: 'rol' });
 Rol.hasMany(Usuario, { foreignKey: 'rol_id', as: 'usuarios' });
 
@@ -92,20 +93,27 @@ Examen.hasMany(PreguntaExamen, {
 });
 
 RespuestaExamen.belongsTo(Examen, { foreignKey: 'examen_id', as: 'examen' });
-
 Examen.hasMany(RespuestaExamen, {
   foreignKey: 'examen_id',
   as: 'respuestas',
   onDelete: 'CASCADE',
-  hooks: true
+  hooks: true,
 });
-
 
 RespuestaExamen.belongsTo(PreguntaExamen, { foreignKey: 'pregunta_id', as: 'pregunta' });
 PreguntaExamen.hasMany(RespuestaExamen, { foreignKey: 'pregunta_id', as: 'respuestas' });
 
 RespuestaExamen.belongsTo(Usuario, { foreignKey: 'usuario_id', as: 'usuario' });
 Usuario.hasMany(RespuestaExamen, { foreignKey: 'usuario_id', as: 'respuestas_examen' });
+
+Formulario.belongsTo(Usuario, { foreignKey: 'creador_id', as: 'creador' });
+Usuario.hasMany(Formulario, { foreignKey: 'creador_id', as: 'formularios_creados' });
+
+RespuestaFormulario.belongsTo(Usuario, { foreignKey: 'usuario_id', as: 'usuario' });
+Usuario.hasMany(RespuestaFormulario, { foreignKey: 'usuario_id', as: 'respuestas_formulario' });
+
+RespuestaFormulario.belongsTo(Formulario, { foreignKey: 'formulario_id', as: 'formulario' });
+Formulario.hasMany(RespuestaFormulario, { foreignKey: 'formulario_id', as: 'respuestas' });
 
 Estadistica.belongsTo(Faena, { foreignKey: 'faena_id', as: 'faena' });
 Faena.hasMany(Estadistica, { foreignKey: 'faena_id', as: 'estadisticas' });
@@ -134,26 +142,11 @@ Usuario.hasMany(Notificacion, { foreignKey: 'usuario_id', as: 'notificaciones' }
 Notificacion.belongsTo(Faena, { foreignKey: 'faena_id', as: 'faena' });
 Faena.hasMany(Notificacion, { foreignKey: 'faena_id', as: 'notificaciones' });
 
-// Relaciones para Inspeccion
-Inspeccion.belongsTo(Faena, {
-  foreignKey: 'faena_id',
-  as: 'faena',
-});
+Inspeccion.belongsTo(Faena, { foreignKey: 'faena_id', as: 'faena' });
+Faena.hasMany(Inspeccion, { foreignKey: 'faena_id', as: 'inspecciones' });
 
-Faena.hasMany(Inspeccion, {
-  foreignKey: 'faena_id',
-  as: 'inspecciones',
-});
-
-Inspeccion.belongsTo(Usuario, {
-  foreignKey: 'inspector_id',
-  as: 'inspector',
-});
-
-Usuario.hasMany(Inspeccion, {
-  foreignKey: 'inspector_id',
-  as: 'inspecciones_realizadas',
-});
+Inspeccion.belongsTo(Usuario, { foreignKey: 'inspector_id', as: 'inspector' });
+Usuario.hasMany(Inspeccion, { foreignKey: 'inspector_id', as: 'inspecciones_realizadas' });
 
 // ✅ Exportación de modelos y conexión
 export {

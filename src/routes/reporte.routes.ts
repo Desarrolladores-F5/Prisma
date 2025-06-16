@@ -4,26 +4,25 @@ import {
   crearReporte,
   actualizarReporte,
   eliminarReporte,
-  obtenerReportesDelUsuario, // ⬅️ importa la nueva función
+  obtenerReportesDelUsuario,
 } from '../controllers/reporte.controller';
 
-import { validarToken } from '../middlewares/validarToken'; // ⬅️ protege la ruta con autenticación
+import { validarToken } from '../middlewares/validarToken';
+import { autorizarRol } from '../middlewares/autorizarRol';
 
 const router = Router();
 
-// 🔒 Ruta solo para reportes del usuario autenticado (trabajador)
-router.get('/mis-reportes', validarToken, obtenerReportesDelUsuario);
+// 🔐 Ruta para reportes del usuario autenticado (trabajador)
+router.get('/mis-reportes', validarToken, autorizarRol(2,3), obtenerReportesDelUsuario);
 
-// GET /api/reportes → todos los reportes (admin/supervisor)
-router.get('/', obtenerReportes);
+// 🔐 Ruta para obtener todos los reportes (admin y supervisor)
+router.get('/', validarToken, autorizarRol(1, 2), obtenerReportes);
 
-// POST /api/reportes
-router.post('/', validarToken, crearReporte);
+// 🔐 Crear nuevo reporte (puede estar disponible para 2 y/o 3)
+router.post('/', validarToken, autorizarRol(1, 2, 3), crearReporte);
 
-// PUT /api/reportes/:id
-router.put('/:id', validarToken, actualizarReporte);
-
-// DELETE /api/reportes/:id
-router.delete('/:id', validarToken, eliminarReporte);
+// 🔐 Actualizar y eliminar (podrías dejar solo admin o supervisor también)
+router.put('/:id', validarToken, autorizarRol(1, 2), actualizarReporte);
+router.delete('/:id', validarToken, autorizarRol(1), eliminarReporte);
 
 export default router;

@@ -32,7 +32,8 @@ export const login = async (req: Request, res: Response) => {
         id: usuario.id,
         nombre: usuario.nombre,
         correo: usuario.correo,
-        rol_id: usuario.rol_id
+        rol_id: usuario.rol_id,
+        faena_id: usuario.faena_id
       },
       process.env.JWT_SECRET || 'secreto_prisma',
       { expiresIn: '4h' }
@@ -45,7 +46,8 @@ export const login = async (req: Request, res: Response) => {
         id: usuario.id,
         nombre: usuario.nombre,
         correo: usuario.correo,
-        rol_id: usuario.rol_id
+        rol_id: usuario.rol_id,
+        faena_id: usuario.faena_id
       }
     });
   } catch (error) {

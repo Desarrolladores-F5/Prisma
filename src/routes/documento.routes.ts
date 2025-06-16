@@ -11,12 +11,16 @@ import { esAdministrador } from '../middlewares/roles';
 
 const router = Router();
 
-// Listar documentos (requiere estar autenticado)
+// ✅ Obtener todos los documentos (requiere autenticación)
 router.get('/', validarToken, obtenerDocumentos);
 
-// Crear, actualizar y eliminar documentos — solo administrador
+// ✅ Crear un documento (solo administrador)
 router.post('/', validarToken, esAdministrador, crearDocumento);
+
+// ✅ Actualizar un documento por ID (solo administrador)
 router.put('/:id', validarToken, esAdministrador, actualizarDocumento);
+
+// ✅ Eliminar un documento por ID (solo administrador)
 router.delete('/:id', validarToken, esAdministrador, eliminarDocumento);
 
 export default router;

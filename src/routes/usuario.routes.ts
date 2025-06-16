@@ -5,23 +5,24 @@ import {
   eliminarUsuario,
   actualizarUsuario,
   contarUsuarios,
-  reactivarUsuario // ✅ importar controlador nuevo
+  reactivarUsuario,
+  obtenerUsuariosPorFaena,
 } from '../controllers/usuario.controller';
+
+import { validarToken } from '../middlewares/validarToken';
+import { autorizarRol } from '../middlewares/autorizarRol'; // Asegúrate que este está bien importado
 
 const router = Router();
 
-// Rutas principales
-router.get('/', obtenerUsuarios);               // GET /api/usuarios
-router.post('/', crearUsuario);                 // POST /api/usuarios
-router.delete('/:id', eliminarUsuario);         // DELETE lógico /api/usuarios/:id
-router.put('/:id', actualizarUsuario);          // PUT /api/usuarios/:id
-router.put('/reactivar/:id', reactivarUsuario); // ✅ nueva ruta para reactivar
+// 📊 Rutas GET accesibles por Administrador (1) y Supervisor (2)
+router.get('/', validarToken, autorizarRol(1, 2), obtenerUsuarios);
+router.get('/conteo/total', validarToken, autorizarRol(1, 2), contarUsuarios);
+router.get('/faena/:faenaId', validarToken, autorizarRol(1, 2), obtenerUsuariosPorFaena);
 
-// Rutas adicionales
-router.get('/conteo/total', contarUsuarios);    // GET /api/usuarios/conteo/total
-
-import { obtenerUsuariosPorFaena } from '../controllers/usuario.controller';
-router.get('/faena/:faenaId', obtenerUsuariosPorFaena); // GET /api/usuarios/faena/:faenaId
-
+// 🔐 Rutas protegidas solo para Administrador
+router.post('/', validarToken, autorizarRol(1), crearUsuario);
+router.delete('/:id', validarToken, autorizarRol(1), eliminarUsuario);
+router.put('/:id', validarToken, autorizarRol(1), actualizarUsuario);
+router.put('/reactivar/:id', validarToken, autorizarRol(1), reactivarUsuario);
 
 export default router;

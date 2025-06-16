@@ -49,7 +49,6 @@ export function initTestigo(sequelize: Sequelize): void {
       rut: {
         type: DataTypes.STRING(12),
         allowNull: false,
-        unique: true,
       },
       correo: {
         type: DataTypes.STRING(150),

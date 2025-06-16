@@ -13,3 +13,8 @@ export const autorizarRol = (...rolesPermitidos: number[]) => {
     next();
   };
 };
+
+// ✅ Exportar middlewares específicos por rol
+export const esAdministrador = autorizarRol(1);
+export const esSupervisor = autorizarRol(2);
+export const esTrabajador = autorizarRol(3);

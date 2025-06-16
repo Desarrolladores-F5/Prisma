@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import { RespuestaFormulario } from '../models';
+import { RespuestaFormulario, Usuario } from '../models';
 
 // Crear una nueva respuesta de formulario
 export const crearRespuestaFormulario = async (req: Request, res: Response) => {
@@ -36,7 +36,7 @@ export const obtenerRespuestasFormulario = async (_req: Request, res: Response) 
   }
 };
 
-// Obtener respuestas por formulario_id (nuevo)
+// Obtener respuestas por formulario_id con datos del usuario
 export const obtenerRespuestasPorFormulario = async (req: Request, res: Response) => {
   try {
     const { formulario_id } = req.query;
@@ -51,6 +51,13 @@ export const obtenerRespuestasPorFormulario = async (req: Request, res: Response
         formulario_id: Number(formulario_id),
         activo: true,
       },
+      include: [
+        {
+          model: Usuario,
+          as: 'usuario',
+          attributes: ['id', 'nombre', 'apellido'],
+        },
+      ],
       order: [['fecha_respuesta', 'DESC']],
     });
 

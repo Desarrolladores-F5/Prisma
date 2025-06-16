@@ -3,7 +3,7 @@ import { Request, Response } from 'express';
 import { Documento } from '../models';
 
 // Obtener todos los documentos activos
-export const obtenerDocumentos = async (_req: Request, res: Response) => {
+export const obtenerDocumentos = async (_req: Request, res: Response): Promise<void> => {
   try {
     const registros = await Documento.findAll({ where: { activo: true } });
     res.json(registros);
@@ -13,16 +13,18 @@ export const obtenerDocumentos = async (_req: Request, res: Response) => {
 };
 
 // Crear un nuevo documento
-export const crearDocumento = async (req: Request, res: Response) => {
+export const crearDocumento = async (req: Request, res: Response): Promise<void> => {
   try {
     const { nombre, tipo, url, version, activo } = req.body;
 
     if (!nombre || !tipo || !url || !version) {
-      return res.status(400).json({ mensaje: '❌ Faltan campos requeridos' });
+      res.status(400).json({ mensaje: '❌ Faltan campos requeridos' });
+      return;
     }
 
     if (!url.startsWith('/uploads/')) {
-      return res.status(400).json({ mensaje: '❌ La URL del archivo debe comenzar con /uploads/' });
+      res.status(400).json({ mensaje: '❌ La URL del archivo debe comenzar con /uploads/' });
+      return;
     }
 
     const nuevo = await Documento.create({ nombre, tipo, url, version, activo });
@@ -33,20 +35,25 @@ export const crearDocumento = async (req: Request, res: Response) => {
 };
 
 // Actualizar un documento
-export const actualizarDocumento = async (req: Request, res: Response) => {
+export const actualizarDocumento = async (req: Request, res: Response): Promise<void> => {
   try {
     const { id } = req.params;
     const { nombre, tipo, url, version, activo } = req.body;
 
     if (!nombre || !tipo || !url || !version) {
-      return res.status(400).json({ mensaje: '❌ Faltan campos requeridos' });
+      res.status(400).json({ mensaje: '❌ Faltan campos requeridos' });
+      return;
     }
 
     if (!url.startsWith('/uploads/')) {
-      return res.status(400).json({ mensaje: '❌ La URL del archivo debe comenzar con /uploads/' });
+      res.status(400).json({ mensaje: '❌ La URL del archivo debe comenzar con /uploads/' });
+      return;
     }
 
-    const [actualizado] = await Documento.update({ nombre, tipo, url, version, activo }, { where: { id } });
+    const [actualizado] = await Documento.update(
+      { nombre, tipo, url, version, activo },
+      { where: { id } }
+    );
 
     if (actualizado) {
       const documento = await Documento.findByPk(id);
@@ -60,7 +67,7 @@ export const actualizarDocumento = async (req: Request, res: Response) => {
 };
 
 // Eliminar (soft delete) un documento
-export const eliminarDocumento = async (req: Request, res: Response) => {
+export const eliminarDocumento = async (req: Request, res: Response): Promise<void> => {
   try {
     const { id } = req.params;
     const [resultado] = await Documento.update({ activo: false }, { where: { id } });

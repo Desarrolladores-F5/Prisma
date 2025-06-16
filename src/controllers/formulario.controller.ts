@@ -1,7 +1,8 @@
+// src/controllers/formulario.controller.ts
 import { Request, Response } from 'express';
 import { Formulario, Usuario } from '../models';
 
-// Obtener todos los formularios activos con relación al creador
+// ✅ Obtener todos los formularios activos con relación al creador
 export const obtenerFormularios = async (_req: Request, res: Response) => {
   try {
     const formularios = await Formulario.findAll({
@@ -20,7 +21,7 @@ export const obtenerFormularios = async (_req: Request, res: Response) => {
   }
 };
 
-// Obtener un formulario por ID (para render dinámico)
+// ✅ Obtener un formulario por ID
 export const obtenerFormularioPorId = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
@@ -48,28 +49,61 @@ export const obtenerFormularioPorId = async (req: Request, res: Response) => {
 // Crear un nuevo formulario
 export const crearFormulario = async (req: Request, res: Response) => {
   try {
-    const nuevo = await Formulario.create(req.body);
+    let { nombre, tipo, estructura_json, creador_id } = req.body;
+
+    // Validar JSON
+    if (typeof estructura_json === 'string') {
+      try {
+        estructura_json = JSON.parse(estructura_json);
+      } catch (error) {
+        return res.status(400).json({
+          mensaje: '❌ El campo estructura_json debe ser un JSON válido',
+          error,
+        });
+      }
+    }
+
+    const nuevo = await Formulario.create({
+      nombre,
+      tipo,
+      estructura_json,
+      creador_id,
+      activo: true, // ✅ Agregado para cumplir con el tipo requerido
+    });
+
     res.status(201).json(nuevo);
   } catch (error) {
     res.status(400).json({ mensaje: '❌ Error al crear formulario', error });
   }
 };
 
-// Actualizar un formulario
+
+// ✅ Actualizar formulario
 export const actualizarFormulario = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
-    const [actualizado] = await Formulario.update(req.body, { where: { id } });
+    let { nombre, tipo, estructura_json, creador_id } = req.body;
+
+    // Validar y transformar el campo estructura_json si es string
+    if (typeof estructura_json === 'string') {
+      try {
+        estructura_json = JSON.parse(estructura_json);
+      } catch (error) {
+        return res.status(400).json({
+          mensaje: '❌ El campo estructura_json debe ser un JSON válido',
+          error,
+        });
+      }
+    }
+
+    const [actualizado] = await Formulario.update(
+      { nombre, tipo, estructura_json, creador_id },
+      { where: { id } }
+    );
 
     if (actualizado) {
       const formulario = await Formulario.findByPk(id, {
-        include: [
-          {
-            model: Usuario,
-            as: 'creador',
-            attributes: ['id', 'nombre'],
-          },
-        ],
+        include: [{ model: Usuario, as: 'creador', attributes: ['id', 'nombre'] }],
       });
       res.json(formulario);
     } else {
@@ -80,7 +114,7 @@ export const actualizarFormulario = async (req: Request, res: Response) => {
   }
 };
 
-// Eliminar (soft delete) un formulario
+// ✅ Eliminar (soft delete)
 export const eliminarFormulario = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
