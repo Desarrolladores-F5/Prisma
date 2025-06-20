@@ -1,8 +1,9 @@
+// src/controllers/firma_digital.controller.ts
 import { Request, Response } from 'express';
-import { FirmaDigital } from '../models';
+import { FirmaDigital, RespuestaFormulario } from '../models';
 
-// Obtener todas las firmas digitales
-export const obtenerFirmas = async (_req: Request, res: Response) => {
+// ✅ Obtener todas las firmas digitales
+export const obtenerFirmas = async (_req: Request, res: Response): Promise<void> => {
   try {
     const firmas = await FirmaDigital.findAll();
     res.json(firmas);
@@ -11,18 +12,55 @@ export const obtenerFirmas = async (_req: Request, res: Response) => {
   }
 };
 
-// Crear una nueva firma digital
-export const crearFirma = async (req: Request, res: Response) => {
+// ✅ Crear una nueva firma digital
+export const crearFirma = async (req: Request, res: Response): Promise<void> => {
   try {
-    const nuevaFirma = await FirmaDigital.create(req.body);
+    if (!req.body || typeof req.body !== 'object') {
+      res.status(400).json({ mensaje: '❌ Body inválido: no se recibió información' });
+      return;
+    }
+
+    const { firmante_id, hash_firma, tipo_firma, metadata } = req.body;
+
+    if (!firmante_id || !hash_firma || !tipo_firma) {
+      res.status(400).json({
+        mensaje: '❌ Campos requeridos faltantes (firmante_id, hash_firma o tipo_firma)'
+      });
+      return;
+    }
+
+    console.log('📥 Datos de firma recibidos:', { firmante_id, hash_firma, tipo_firma, metadata });
+
+    const nuevaFirma = await FirmaDigital.create({
+      firmante_id,
+      hash_firma,
+      tipo_firma,
+      metadata,
+      fecha: new Date(),
+    });
+
+    if (metadata?.entidad === 'respuesta_formulario' && metadata?.entidad_id) {
+      const resultado = await RespuestaFormulario.update(
+        { estado_firma: 'firmado' },
+        { where: { id: metadata.entidad_id } }
+      );
+
+      if (resultado[0] > 0) {
+        console.log(`✅ RespuestaFormulario ID ${metadata.entidad_id} actualizada`);
+      } else {
+        console.warn(`⚠️ No se encontró RespuestaFormulario con ID ${metadata.entidad_id}`);
+      }
+    }
+
     res.status(201).json(nuevaFirma);
   } catch (error) {
+    console.error('❌ Error en crearFirma:', error);
     res.status(400).json({ mensaje: '❌ Error al crear firma digital', error });
   }
 };
 
-// Eliminar una firma digital (opcional, puede ser lógico si se desea trazabilidad)
-export const eliminarFirma = async (req: Request, res: Response) => {
+// ✅ Eliminar una firma digital
+export const eliminarFirma = async (req: Request, res: Response): Promise<void> => {
   try {
     const { id } = req.params;
     const eliminada = await FirmaDigital.destroy({ where: { id } });

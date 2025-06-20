@@ -20,7 +20,7 @@ import { EPP } from './epp.model';
 import { Notificacion } from './notificacion.model';
 import { MedidaCorrectiva } from './medida_correctiva.model';
 import { Inspeccion } from './inspeccion.model';
-import { FirmaDigital } from './firma_digital.model';
+import { initFirmaDigital, FirmaDigital } from './firma_digital.model'; // ✅ Importación corregida
 import { initArchivoAdjunto, ArchivoAdjunto } from './archivoAdjunto.model';
 import { initFormulario, Formulario } from './formulario.model';
 import { initRespuestaFormulario, RespuestaFormulario } from './respuesta_formulario.model';
@@ -43,6 +43,7 @@ initPreguntaExamen(sequelize);
 initRespuestaExamen(sequelize);
 initArchivoAdjunto(sequelize);
 initFormulario(sequelize);
+initFirmaDigital(sequelize); // ✅ Inicialización agregada
 initRespuestaFormulario(sequelize);
 initTestigo(sequelize);
 initEstadistica(sequelize);

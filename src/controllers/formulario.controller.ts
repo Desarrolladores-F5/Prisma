@@ -2,18 +2,12 @@
 import { Request, Response } from 'express';
 import { Formulario, Usuario } from '../models';
 
-// ✅ Obtener todos los formularios activos con relación al creador
-export const obtenerFormularios = async (_req: Request, res: Response) => {
+// ✅ Obtener todos los formularios activos
+export const obtenerFormularios = async (_req: Request, res: Response): Promise<void> => {
   try {
     const formularios = await Formulario.findAll({
       where: { activo: true },
-      include: [
-        {
-          model: Usuario,
-          as: 'creador',
-          attributes: ['id', 'nombre'],
-        },
-      ],
+      include: [{ model: Usuario, as: 'creador', attributes: ['id', 'nombre'] }],
     });
     res.json(formularios);
   } catch (error) {
@@ -21,18 +15,12 @@ export const obtenerFormularios = async (_req: Request, res: Response) => {
   }
 };
 
-// ✅ Obtener un formulario por ID
-export const obtenerFormularioPorId = async (req: Request, res: Response) => {
+// ✅ Obtener formulario por ID
+export const obtenerFormularioPorId = async (req: Request, res: Response): Promise<void> => {
   try {
     const { id } = req.params;
     const formulario = await Formulario.findByPk(id, {
-      include: [
-        {
-          model: Usuario,
-          as: 'creador',
-          attributes: ['id', 'nombre'],
-        },
-      ],
+      include: [{ model: Usuario, as: 'creador', attributes: ['id', 'nombre'] }],
     });
 
     if (!formulario) {
@@ -46,20 +34,20 @@ export const obtenerFormularioPorId = async (req: Request, res: Response) => {
   }
 };
 
-// Crear un nuevo formulario
-export const crearFormulario = async (req: Request, res: Response) => {
+// ✅ Crear nuevo formulario
+export const crearFormulario = async (req: Request, res: Response): Promise<void> => {
   try {
     let { nombre, tipo, estructura_json, creador_id } = req.body;
 
-    // Validar JSON
     if (typeof estructura_json === 'string') {
       try {
         estructura_json = JSON.parse(estructura_json);
       } catch (error) {
-        return res.status(400).json({
+        res.status(400).json({
           mensaje: '❌ El campo estructura_json debe ser un JSON válido',
           error,
         });
+        return;
       }
     }
 
@@ -68,7 +56,7 @@ export const crearFormulario = async (req: Request, res: Response) => {
       tipo,
       estructura_json,
       creador_id,
-      activo: true, // ✅ Agregado para cumplir con el tipo requerido
+      activo: true,
     });
 
     res.status(201).json(nuevo);
@@ -77,22 +65,21 @@ export const crearFormulario = async (req: Request, res: Response) => {
   }
 };
 
-
 // ✅ Actualizar formulario
-export const actualizarFormulario = async (req: Request, res: Response) => {
+export const actualizarFormulario = async (req: Request, res: Response): Promise<void> => {
   try {
     const { id } = req.params;
     let { nombre, tipo, estructura_json, creador_id } = req.body;
 
-    // Validar y transformar el campo estructura_json si es string
     if (typeof estructura_json === 'string') {
       try {
         estructura_json = JSON.parse(estructura_json);
       } catch (error) {
-        return res.status(400).json({
+        res.status(400).json({
           mensaje: '❌ El campo estructura_json debe ser un JSON válido',
           error,
         });
+        return;
       }
     }
 
@@ -114,8 +101,8 @@ export const actualizarFormulario = async (req: Request, res: Response) => {
   }
 };
 
-// ✅ Eliminar (soft delete)
-export const eliminarFormulario = async (req: Request, res: Response) => {
+// ✅ Eliminar formulario (soft delete)
+export const eliminarFormulario = async (req: Request, res: Response): Promise<void> => {
   try {
     const { id } = req.params;
     const [resultado] = await Formulario.update({ activo: false }, { where: { id } });
