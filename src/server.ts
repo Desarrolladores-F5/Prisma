@@ -7,16 +7,27 @@ import path from 'path';
 import sequelize from './config/database';
 import './models'; // Importa todos los modelos y relaciones
 
-// Cargar variables de entorno
 dotenv.config();
 
-// Inicializar app Express
 const app = express();
-app.use(express.json());
-app.use(cors());
-app.use(helmet());
 
-// ✅ Servir archivos estáticos subidos (uploads)
+// ✅ Configuración general de CORS
+app.use(cors({
+  origin: 'http://localhost:3000',
+  credentials: true,
+}));
+
+app.use(helmet());
+app.use(express.json());
+
+// ✅ Middleware CORS específico para archivos estáticos (firmas, adjuntos, etc.)
+app.use('/uploads', (req, res, next) => {
+  res.setHeader('Access-Control-Allow-Origin', 'http://localhost:3000');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+  res.setHeader('Cross-Origin-Resource-Policy', 'cross-origin'); // ✅ Clave para imágenes en <img>
+  next();
+});
 app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
 
 // ✅ Importar rutas
@@ -43,8 +54,6 @@ import rolRoutes from './routes/rol.routes';
 import testigoRoutes from './routes/testigo.routes';
 import uploadRoutes from './routes/upload.routes';
 import usuarioRoutes from './routes/usuario.routes';
-
-// ✅ Nuevas rutas para módulo de exámenes
 import examenRoutes from './routes/examen.routes';
 import preguntaExamenRoutes from './routes/pregunta_examen.routes';
 import respuestaExamenRoutes from './routes/respuesta_examen.routes';
@@ -73,21 +82,18 @@ app.use('/api/roles', rolRoutes);
 app.use('/api/testigos', testigoRoutes);
 app.use('/api/upload', uploadRoutes);
 app.use('/api/usuarios', usuarioRoutes);
-
-// ✅ Asociar rutas de exámenes
 app.use('/api/examenes', examenRoutes);
 app.use('/api/preguntas-examen', preguntaExamenRoutes);
 app.use('/api/respuestas-examen', respuestaExamenRoutes);
 
-// ✅ Ruta raíz de prueba
+// ✅ Ruta raíz
 app.get('/', (_req, res) => {
   res.send('🚀 Backend Prisma funcionando');
 });
 
-// Puerto del servidor
+// ✅ Puerto y conexión
 const PORT = process.env.PORT || 3001;
 
-// ✅ Conexión y arranque del servidor
 sequelize.authenticate()
   .then(() => {
     console.log('✅ Conexión a la base de datos establecida correctamente.');

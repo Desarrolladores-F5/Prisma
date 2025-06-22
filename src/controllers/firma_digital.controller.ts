@@ -12,7 +12,7 @@ export const obtenerFirmas = async (_req: Request, res: Response): Promise<void>
   }
 };
 
-// ✅ Crear una nueva firma digital
+// ✅ Crear una nueva firma digital con soporte para imagen
 export const crearFirma = async (req: Request, res: Response): Promise<void> => {
   try {
     if (!req.body || typeof req.body !== 'object') {
@@ -20,8 +20,15 @@ export const crearFirma = async (req: Request, res: Response): Promise<void> => 
       return;
     }
 
-    const { firmante_id, hash_firma, tipo_firma, metadata } = req.body;
+    const {
+      firmante_id,
+      hash_firma,
+      tipo_firma,
+      metadata,
+      firma_imagen_url // ✅ Nuevo campo opcional para imagen visible
+    } = req.body;
 
+    // Validación de campos obligatorios
     if (!firmante_id || !hash_firma || !tipo_firma) {
       res.status(400).json({
         mensaje: '❌ Campos requeridos faltantes (firmante_id, hash_firma o tipo_firma)'
@@ -29,16 +36,25 @@ export const crearFirma = async (req: Request, res: Response): Promise<void> => 
       return;
     }
 
-    console.log('📥 Datos de firma recibidos:', { firmante_id, hash_firma, tipo_firma, metadata });
+    console.log('📥 Datos de firma recibidos:', {
+      firmante_id,
+      hash_firma,
+      tipo_firma,
+      metadata,
+      firma_imagen_url
+    });
 
+    // Crear la firma
     const nuevaFirma = await FirmaDigital.create({
       firmante_id,
       hash_firma,
       tipo_firma,
       metadata,
+      firma_imagen_url,
       fecha: new Date(),
     });
 
+    // Actualizar estado de respuesta_formulario si aplica
     if (metadata?.entidad === 'respuesta_formulario' && metadata?.entidad_id) {
       const resultado = await RespuestaFormulario.update(
         { estado_firma: 'firmado' },

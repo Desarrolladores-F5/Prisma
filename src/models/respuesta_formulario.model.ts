@@ -1,5 +1,8 @@
+// src/models/respuesta_formulario.model.ts
+
 import { DataTypes, Model, Sequelize, Optional } from 'sequelize';
-import { Usuario } from './usuario.model'; // ✅ Asegúrate de importar correctamente
+import { Usuario } from './usuario.model';
+import { Formulario } from './formulario.model'; // ✅ Importar modelo relacionado
 
 export interface RespuestaFormularioAttributes {
   id: number;
@@ -29,8 +32,9 @@ export class RespuestaFormulario
   public activo!: boolean;
   public estado_firma?: string;
 
-  // ✅ Asociación opcional (no es parte de la base de datos)
+  // Asociaciones (tipado para TypeScript, no se mapean a BD directamente)
   public usuario?: Usuario;
+  public formulario?: Formulario; // ✅ Añadir esta propiedad
 }
 
 export function initRespuestaFormulario(sequelize: Sequelize): void {
@@ -75,10 +79,15 @@ export function initRespuestaFormulario(sequelize: Sequelize): void {
   );
 }
 
-// ✅ Asociación con Usuario (relación belongsTo)
+// ✅ Definición de asociaciones
 export function asociarRespuestaFormulario(): void {
   RespuestaFormulario.belongsTo(Usuario, {
     foreignKey: 'usuario_id',
     as: 'usuario',
+  });
+
+  RespuestaFormulario.belongsTo(Formulario, {
+    foreignKey: 'formulario_id',
+    as: 'formulario', // ✅ Agregar esta asociación
   });
 }

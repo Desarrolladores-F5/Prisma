@@ -7,10 +7,11 @@ export interface FirmaDigitalAttributes {
   hash_firma: string;
   tipo_firma: string;
   metadata?: object;
+  firma_imagen_url?: string; 
 }
 
 export interface FirmaDigitalCreationAttributes
-  extends Optional<FirmaDigitalAttributes, 'id' | 'fecha' | 'metadata'> {}
+  extends Optional<FirmaDigitalAttributes, 'id' | 'fecha' | 'metadata' | 'firma_imagen_url'> {}
 
 export class FirmaDigital extends Model<FirmaDigitalAttributes, FirmaDigitalCreationAttributes>
   implements FirmaDigitalAttributes {
@@ -20,6 +21,7 @@ export class FirmaDigital extends Model<FirmaDigitalAttributes, FirmaDigitalCrea
   public hash_firma!: string;
   public tipo_firma!: string;
   public metadata?: object;
+  public firma_imagen_url?: string; 
 }
 
 export function initFirmaDigital(sequelize: Sequelize): void {
@@ -38,7 +40,7 @@ export function initFirmaDigital(sequelize: Sequelize): void {
           key: 'id',
         },
         onUpdate: 'CASCADE',
-        onDelete: 'CASCADE', // Borra la firma si se borra el usuario firmante
+        onDelete: 'CASCADE',
       },
       fecha: {
         type: DataTypes.DATE,
@@ -55,6 +57,10 @@ export function initFirmaDigital(sequelize: Sequelize): void {
       },
       metadata: {
         type: DataTypes.JSON,
+        allowNull: true,
+      },
+      firma_imagen_url: {
+        type: DataTypes.STRING(255),
         allowNull: true,
       },
     },

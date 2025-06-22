@@ -1,12 +1,12 @@
 // src/routes/respuesta_formulario.routes.ts
-
 import { Router } from 'express';
 import {
   crearRespuestaFormulario,
   obtenerRespuestasFormulario,
   obtenerRespuestasPorFormulario,
   obtenerRespuestaPorId,
-  obtenerMisRespuestasFormulario, // ✅ Importación del nuevo controlador
+  obtenerMisRespuestasFormulario,
+  descargarPDFRespuesta, // ✅ NUEVA importación
 } from '../controllers/respuesta_formulario.controller';
 
 import { validarToken } from '../middlewares/validarToken';
@@ -25,7 +25,10 @@ router.get('/por-formulario', validarToken, obtenerRespuestasPorFormulario);
 // ✅ Obtener respuestas por formulario solo del usuario autenticado (para supervisor)
 router.get('/mis-respuestas', validarToken, obtenerMisRespuestasFormulario);
 
-// ✅ Obtener una respuesta específica por su ID
+// ✅ Obtener una respuesta específica por su ID (sin PDF)
 router.get('/:id', validarToken, obtenerRespuestaPorId);
+
+// ✅ NUEVA RUTA: Descargar PDF con firma
+router.get('/pdf/:id', validarToken, descargarPDFRespuesta);
 
 export default router;

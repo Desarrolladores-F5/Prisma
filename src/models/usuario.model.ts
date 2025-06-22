@@ -11,20 +11,21 @@ export interface UsuarioAttributes {
   telefono?: string;
   fecha_nacimiento?: Date;
   fecha_contrato?: Date;
-  tipo_contrato?: string; 
+  tipo_contrato?: string;
   rol_id: number;
   faena_id?: number;
   contraseña_hash: string;
   salt: string;
   activo: boolean;
   fecha_creacion?: Date;
+  firma_imagen_url?: string; 
 }
 
 // Tipos para creación
 export interface UsuarioCreationAttributes
   extends Optional<
     UsuarioAttributes,
-    'id' | 'telefono' | 'faena_id' | 'fecha_nacimiento' | 'fecha_contrato' | 'tipo_contrato' | 'fecha_creacion'
+    'id' | 'telefono' | 'faena_id' | 'fecha_nacimiento' | 'fecha_contrato' | 'tipo_contrato' | 'fecha_creacion' | 'firma_imagen_url'
   > {}
 
 export class Usuario
@@ -46,6 +47,7 @@ export class Usuario
   public salt!: string;
   public activo!: boolean;
   public fecha_creacion?: Date;
+  public firma_imagen_url?: string; 
 }
 
 export function initUsuario(sequelize: Sequelize): typeof Usuario {
@@ -59,7 +61,6 @@ export function initUsuario(sequelize: Sequelize): typeof Usuario {
       rut: {
         type: DataTypes.STRING,
         allowNull: false,
-        // unique: true, ❌ Eliminado
       },
       nombre: {
         type: DataTypes.STRING,
@@ -112,6 +113,10 @@ export function initUsuario(sequelize: Sequelize): typeof Usuario {
       fecha_creacion: {
         type: DataTypes.DATE,
         defaultValue: DataTypes.NOW,
+      },
+      firma_imagen_url: {
+        type: DataTypes.STRING(255),
+        allowNull: true,
       },
     },
     {

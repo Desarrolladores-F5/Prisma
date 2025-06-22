@@ -149,6 +149,9 @@ Faena.hasMany(Inspeccion, { foreignKey: 'faena_id', as: 'inspecciones' });
 Inspeccion.belongsTo(Usuario, { foreignKey: 'inspector_id', as: 'inspector' });
 Usuario.hasMany(Inspeccion, { foreignKey: 'inspector_id', as: 'inspecciones_realizadas' });
 
+FirmaDigital.belongsTo(Usuario, { foreignKey: 'usuario_id', as: 'usuario' });
+Usuario.hasMany(FirmaDigital, { foreignKey: 'usuario_id', as: 'firmas' });
+
 // ✅ Exportación de modelos y conexión
 export {
   sequelize,
