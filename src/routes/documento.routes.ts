@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import {
   obtenerDocumentos,
+  obtenerMisDocumentos,
   crearDocumento,
   actualizarDocumento,
   eliminarDocumento,
@@ -11,8 +12,11 @@ import { esAdministrador } from '../middlewares/roles';
 
 const router = Router();
 
-// ✅ Obtener todos los documentos (requiere autenticación)
+// ✅ Obtener todos los documentos activos (para administrador o público general)
 router.get('/', validarToken, obtenerDocumentos);
+
+// ✅ Obtener documentos del usuario autenticado (trabajador)
+router.get('/mis-documentos', validarToken, obtenerMisDocumentos);
 
 // ✅ Crear un documento (solo administrador)
 router.post('/', validarToken, esAdministrador, crearDocumento);

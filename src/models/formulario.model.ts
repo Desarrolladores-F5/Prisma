@@ -6,18 +6,24 @@ export interface FormularioAttributes {
   tipo: string;
   estructura_json: object;
   creador_id: number;
+  faena_id?: number;
   fecha_creacion?: Date;
   activo: boolean;
 }
 
-export interface FormularioCreationAttributes extends Optional<FormularioAttributes, 'id' | 'fecha_creacion'> {}
+export interface FormularioCreationAttributes
+  extends Optional<FormularioAttributes, 'id' | 'fecha_creacion'> {}
 
-export class Formulario extends Model<FormularioAttributes, FormularioCreationAttributes> implements FormularioAttributes {
+export class Formulario
+  extends Model<FormularioAttributes, FormularioCreationAttributes>
+  implements FormularioAttributes
+{
   public id!: number;
   public nombre!: string;
   public tipo!: string;
   public estructura_json!: object;
   public creador_id!: number;
+  public faena_id?: number;
   public fecha_creacion!: Date;
   public activo!: boolean;
 }
@@ -26,7 +32,7 @@ export function initFormulario(sequelize: Sequelize): void {
   Formulario.init(
     {
       id: {
-        type: DataTypes.INTEGER, 
+        type: DataTypes.INTEGER.UNSIGNED,
         autoIncrement: true,
         primaryKey: true,
       },
@@ -39,12 +45,16 @@ export function initFormulario(sequelize: Sequelize): void {
         allowNull: false,
       },
       estructura_json: {
-        type: DataTypes.JSON, 
+        type: DataTypes.JSON,
         allowNull: false,
       },
       creador_id: {
-        type: DataTypes.INTEGER, 
+        type: DataTypes.INTEGER.UNSIGNED,
         allowNull: false,
+      },
+      faena_id: {
+        type: DataTypes.INTEGER.UNSIGNED,
+        allowNull: true,
       },
       fecha_creacion: {
         type: DataTypes.DATE,

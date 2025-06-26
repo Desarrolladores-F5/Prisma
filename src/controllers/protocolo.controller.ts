@@ -1,7 +1,18 @@
 import { Request, Response } from 'express';
 import { Protocolo, Usuario, Empresa, Faena } from '../models';
 
-export const obtenerProtocolos = async (_req: Request, res: Response) => {
+// Tipo extendido solo para esta función
+interface RequestConUsuario extends Request {
+  usuario?: {
+    id: number;
+    nombre: string;
+    correo: string;
+    rol_id: number;
+    faena_id: number;
+  };
+}
+
+export const obtenerProtocolos = async (_req: Request, res: Response): Promise<void> => {
   try {
     const protocolos = await Protocolo.findAll({
       where: { activo: true },
@@ -31,7 +42,7 @@ export const obtenerProtocolos = async (_req: Request, res: Response) => {
   }
 };
 
-export const crearProtocolo = async (req: Request, res: Response) => {
+export const crearProtocolo = async (req: Request, res: Response): Promise<void> => {
   try {
     const nuevoProtocolo = await Protocolo.create(req.body);
     res.status(201).json(nuevoProtocolo);
@@ -40,7 +51,7 @@ export const crearProtocolo = async (req: Request, res: Response) => {
   }
 };
 
-export const actualizarProtocolo = async (req: Request, res: Response) => {
+export const actualizarProtocolo = async (req: Request, res: Response): Promise<void> => {
   const { id } = req.params;
   try {
     const protocolo = await Protocolo.findByPk(id);
@@ -56,7 +67,7 @@ export const actualizarProtocolo = async (req: Request, res: Response) => {
   }
 };
 
-export const eliminarProtocolo = async (req: Request, res: Response) => {
+export const eliminarProtocolo = async (req: Request, res: Response): Promise<void> => {
   const { id } = req.params;
   try {
     const protocolo = await Protocolo.findByPk(id);
@@ -69,5 +80,35 @@ export const eliminarProtocolo = async (req: Request, res: Response) => {
     res.json({ mensaje: 'Protocolo eliminado correctamente' });
   } catch (error) {
     res.status(500).json({ mensaje: 'Error al eliminar protocolo', error });
+  }
+};
+
+export const obtenerMisProtocolos = async (req: RequestConUsuario, res: Response): Promise<void> => {
+  try {
+    const usuarioId = req.usuario?.id;
+
+    if (!usuarioId) {
+      res.status(403).json({ mensaje: 'Usuario no autorizado' });
+      return;
+    }
+
+    const protocolos = await Protocolo.findAll({
+      where: {
+        responsable_id: usuarioId,
+        activo: true
+      },
+      include: [
+        {
+          model: Faena,
+          as: 'faena',
+          attributes: ['id', 'nombre']
+        }
+      ]
+    });
+
+    res.json(protocolos);
+  } catch (error) {
+    console.error('❌ Error al obtener protocolos del trabajador:', error);
+    res.status(500).json({ mensaje: 'Error interno del servidor' });
   }
 };

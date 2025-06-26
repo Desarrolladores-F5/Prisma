@@ -37,7 +37,7 @@ export const obtenerFormularioPorId = async (req: Request, res: Response): Promi
 // ✅ Crear nuevo formulario
 export const crearFormulario = async (req: Request, res: Response): Promise<void> => {
   try {
-    let { nombre, tipo, estructura_json, creador_id } = req.body;
+    let { nombre, tipo, estructura_json, creador_id, faena_id } = req.body;
 
     if (typeof estructura_json === 'string') {
       try {
@@ -56,6 +56,7 @@ export const crearFormulario = async (req: Request, res: Response): Promise<void
       tipo,
       estructura_json,
       creador_id,
+      faena_id: faena_id || null,
       activo: true,
     });
 
@@ -69,7 +70,7 @@ export const crearFormulario = async (req: Request, res: Response): Promise<void
 export const actualizarFormulario = async (req: Request, res: Response): Promise<void> => {
   try {
     const { id } = req.params;
-    let { nombre, tipo, estructura_json, creador_id } = req.body;
+    let { nombre, tipo, estructura_json, creador_id, faena_id } = req.body;
 
     if (typeof estructura_json === 'string') {
       try {
@@ -84,7 +85,7 @@ export const actualizarFormulario = async (req: Request, res: Response): Promise
     }
 
     const [actualizado] = await Formulario.update(
-      { nombre, tipo, estructura_json, creador_id },
+      { nombre, tipo, estructura_json, creador_id, faena_id },
       { where: { id } }
     );
 
@@ -114,5 +115,34 @@ export const eliminarFormulario = async (req: Request, res: Response): Promise<v
     }
   } catch (error) {
     res.status(500).json({ mensaje: '❌ Error al eliminar formulario', error });
+  }
+};
+
+// ✅ Obtener formularios por faena para trabajadores
+export const obtenerFormulariosParaTrabajador = async (
+  req: Request,
+  res: Response
+): Promise<void> => {
+  try {
+    const usuarioId = req.usuario?.id;
+
+    const usuario = await Usuario.findByPk(usuarioId);
+
+    if (!usuario) {
+      res.status(404).json({ mensaje: 'Usuario no encontrado' });
+      return;
+    }
+
+    const formularios = await Formulario.findAll({
+      where: {
+        faena_id: usuario.faena_id,
+        activo: true,
+      },
+      include: [{ model: Usuario, as: 'creador', attributes: ['id', 'nombre'] }],
+    });
+
+    res.json(formularios);
+  } catch (error) {
+    res.status(500).json({ mensaje: '❌ Error al obtener formularios del trabajador', error });
   }
 };

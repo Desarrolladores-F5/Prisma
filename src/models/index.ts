@@ -43,7 +43,7 @@ initPreguntaExamen(sequelize);
 initRespuestaExamen(sequelize);
 initArchivoAdjunto(sequelize);
 initFormulario(sequelize);
-initFirmaDigital(sequelize); // ✅ Inicialización agregada
+initFirmaDigital(sequelize); 
 initRespuestaFormulario(sequelize);
 initTestigo(sequelize);
 initEstadistica(sequelize);
@@ -151,6 +151,16 @@ Usuario.hasMany(Inspeccion, { foreignKey: 'inspector_id', as: 'inspecciones_real
 
 FirmaDigital.belongsTo(Usuario, { foreignKey: 'usuario_id', as: 'usuario' });
 Usuario.hasMany(FirmaDigital, { foreignKey: 'usuario_id', as: 'firmas' });
+
+EPP.belongsTo(Usuario, { foreignKey: 'usuario_id', as: 'usuario' });
+Usuario.hasMany(EPP, { foreignKey: 'usuario_id', as: 'epp_asignado' });
+
+EPP.belongsTo(Faena, { foreignKey: 'faena_id', as: 'faena' });
+Faena.hasMany(EPP, { foreignKey: 'faena_id', as: 'epp_faena' });
+
+Formulario.belongsTo(Faena, { foreignKey: 'faena_id', as: 'faena' });
+Faena.hasMany(Formulario, { foreignKey: 'faena_id', as: 'formularios' });
+
 
 // ✅ Exportación de modelos y conexión
 export {

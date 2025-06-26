@@ -1,6 +1,9 @@
+// src/routes/notificacion.routes.ts
+
 import { Router } from 'express';
 import {
   obtenerNotificaciones,
+  obtenerMisNotificaciones,
   crearNotificacion,
   actualizarNotificacion,
   eliminarNotificacion,
@@ -8,14 +11,18 @@ import {
 
 import { validarToken } from '../middlewares/validarToken';
 import { esAdministrador } from '../middlewares/roles';
-import { autorizarRol } from '../middlewares/autorizarRol'; 
+import { autorizarRol } from '../middlewares/autorizarRol';
 
 const router = Router();
 
-// 🔹 Supervisores (rol 2) y Administradores (rol 1) pueden ver notificaciones
+
+// 🔹 Administrador y Supervisor: Obtener todas las notificaciones activas
 router.get('/', validarToken, autorizarRol(1, 2), obtenerNotificaciones);
 
-// 🔐 Solo administradores pueden modificar
+// 🔹 Trabajador: Obtener solo sus notificaciones personales
+router.get('/mis-notificaciones', validarToken, autorizarRol(3), obtenerMisNotificaciones);
+
+// 🔐 Solo Administrador puede crear, actualizar y eliminar notificaciones
 router.post('/', validarToken, esAdministrador, crearNotificacion);
 router.put('/:id', validarToken, esAdministrador, actualizarNotificacion);
 router.delete('/:id', validarToken, esAdministrador, eliminarNotificacion);

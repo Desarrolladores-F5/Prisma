@@ -13,11 +13,12 @@ export interface ProtocoloAttributes {
   fecha_vigencia?: Date;
   fecha_creacion?: Date;
   activo: boolean;
+  url?: string; // ✅ Campo agregado
 }
 
 export interface ProtocoloCreationAttributes extends Optional<
   ProtocoloAttributes,
-  'id' | 'descripcion' | 'version' | 'vigente' | 'fecha_emision' | 'fecha_vigencia' | 'fecha_creacion' | 'activo'
+  'id' | 'descripcion' | 'version' | 'vigente' | 'fecha_emision' | 'fecha_vigencia' | 'fecha_creacion' | 'activo' | 'url'
 > {}
 
 export class Protocolo
@@ -36,6 +37,7 @@ export class Protocolo
   public fecha_vigencia?: Date;
   public fecha_creacion?: Date;
   public activo!: boolean;
+  public url?: string; // ✅ Campo agregado
 }
 
 export function initProtocolo(sequelize: Sequelize): void {
@@ -105,6 +107,10 @@ export function initProtocolo(sequelize: Sequelize): void {
         allowNull: false,
         defaultValue: true,
       },
+      url: {
+        type: DataTypes.STRING,
+        allowNull: true,
+      }, // ✅ Campo agregado para almacenar enlace de descarga
     },
     {
       sequelize,

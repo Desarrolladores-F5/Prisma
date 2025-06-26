@@ -4,19 +4,21 @@ import {
   crearEPP,
   actualizarEPP,
   eliminarEPP,
+  obtenerEppDelUsuario, // nuevo nombre estandarizado
 } from '../controllers/epp.controller';
 
 import { validarToken } from '../middlewares/validarToken';
-import { esAdministrador } from '../middlewares/roles';
+import { autorizarRol } from '../middlewares/autorizarRol';
 
 const router = Router();
 
-// Listar EPP (requiere autenticación)
-router.get('/', validarToken, obtenerEPP);
+// 🔐 EPP asignados al usuario autenticado (solo trabajadores)
+router.get('/mis-epp', validarToken, autorizarRol(3), obtenerEppDelUsuario);
 
-// Crear, editar y eliminar — solo administradores
-router.post('/', validarToken, esAdministrador, crearEPP);
-router.put('/:id', validarToken, esAdministrador, actualizarEPP);
-router.delete('/:id', validarToken, esAdministrador, eliminarEPP);
+// 🔐 Gestión completa de EPP (solo administradores)
+router.get('/', validarToken, autorizarRol(1), obtenerEPP);
+router.post('/', validarToken, autorizarRol(1), crearEPP);
+router.put('/:id', validarToken, autorizarRol(1), actualizarEPP);
+router.delete('/:id', validarToken, autorizarRol(1), eliminarEPP);
 
 export default router;

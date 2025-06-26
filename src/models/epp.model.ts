@@ -1,3 +1,4 @@
+// src/models/epp.model.ts
 import { DataTypes, Model, Optional } from 'sequelize';
 import sequelize from '../config/database';
 
@@ -15,7 +16,10 @@ export interface EPPAttributes {
   fecha_creacion?: Date;
 }
 
-interface EPPCreationAttributes extends Optional<EPPAttributes, 'id' | 'descripcion' | 'faena_id' | 'documento_id' | 'fecha_creacion'> {}
+interface EPPCreationAttributes extends Optional<
+  EPPAttributes,
+  'id' | 'descripcion' | 'faena_id' | 'documento_id' | 'fecha_creacion'
+> {}
 
 export class EPPModel extends Model<EPPAttributes, EPPCreationAttributes> implements EPPAttributes {
   public id!: number;
@@ -40,6 +44,12 @@ export const EPP = sequelize.define<EPPModel>('epp', {
   usuario_id: {
     type: DataTypes.INTEGER,
     allowNull: false,
+    references: {
+      model: 'usuarios',
+      key: 'id',
+    },
+    onUpdate: 'CASCADE',
+    onDelete: 'CASCADE',
   },
   tipo: {
     type: DataTypes.STRING,
@@ -50,16 +60,15 @@ export const EPP = sequelize.define<EPPModel>('epp', {
     allowNull: true,
   },
   faena_id: {
-  type: DataTypes.INTEGER.UNSIGNED,
-  allowNull: true,
-  references: {
-    model: 'faenas',
-    key: 'id',
+    type: DataTypes.INTEGER,
+    allowNull: true,
+    references: {
+      model: 'faenas',
+      key: 'id',
+    },
+    onUpdate: 'CASCADE',
+    onDelete: 'SET NULL',
   },
-  onUpdate: 'CASCADE',
-  onDelete: 'SET NULL',
-},
-
   fecha_entrega: {
     type: DataTypes.DATE,
     allowNull: false,
@@ -75,6 +84,12 @@ export const EPP = sequelize.define<EPPModel>('epp', {
   documento_id: {
     type: DataTypes.INTEGER,
     allowNull: true,
+    references: {
+      model: 'documentos',
+      key: 'id',
+    },
+    onUpdate: 'CASCADE',
+    onDelete: 'SET NULL',
   },
   activo: {
     type: DataTypes.BOOLEAN,

@@ -1,9 +1,10 @@
 // src/controllers/notificacion.controller.ts
+
 import { Request, Response } from 'express';
 import { Notificacion, Usuario, Faena } from '../models';
 
 // Obtener todas las notificaciones activas con relaciones
-export const obtenerNotificaciones = async (_req: Request, res: Response) => {
+export const obtenerNotificaciones = async (_req: Request, res: Response): Promise<void> => {
   try {
     const registros = await Notificacion.findAll({
       where: { activo: true },
@@ -21,7 +22,7 @@ export const obtenerNotificaciones = async (_req: Request, res: Response) => {
 };
 
 // Crear una nueva notificación
-export const crearNotificacion = async (req: Request, res: Response) => {
+export const crearNotificacion = async (req: Request, res: Response): Promise<void> => {
   try {
     const nueva = await Notificacion.create(req.body);
     res.status(201).json(nueva);
@@ -31,7 +32,7 @@ export const crearNotificacion = async (req: Request, res: Response) => {
 };
 
 // Actualizar una notificación (por ejemplo, marcar como leída)
-export const actualizarNotificacion = async (req: Request, res: Response) => {
+export const actualizarNotificacion = async (req: Request, res: Response): Promise<void> => {
   try {
     const { id } = req.params;
     const [actualizada] = await Notificacion.update(req.body, { where: { id } });
@@ -53,7 +54,7 @@ export const actualizarNotificacion = async (req: Request, res: Response) => {
 };
 
 // Eliminar (soft delete) una notificación
-export const eliminarNotificacion = async (req: Request, res: Response) => {
+export const eliminarNotificacion = async (req: Request, res: Response): Promise<void> => {
   try {
     const { id } = req.params;
     const [resultado] = await Notificacion.update({ activo: false }, { where: { id } });
@@ -65,5 +66,26 @@ export const eliminarNotificacion = async (req: Request, res: Response) => {
     }
   } catch (error) {
     res.status(500).json({ mensaje: '❌ Error al eliminar notificación', error });
+  }
+};
+
+// Obtener notificaciones propias del usuario autenticado
+export const obtenerMisNotificaciones = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { usuario } = req;
+
+    if (!usuario?.id) {
+      res.status(401).json({ mensaje: 'Usuario no autenticado' });
+      return;
+    }
+
+    const notificaciones = await Notificacion.findAll({
+      where: { usuario_id: usuario.id, activo: true },
+      order: [['fecha', 'DESC']],
+    });
+
+    res.json(notificaciones);
+  } catch (error) {
+    res.status(500).json({ mensaje: '❌ Error al obtener notificaciones personales', error });
   }
 };

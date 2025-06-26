@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import {
   obtenerProtocolos,
+  obtenerMisProtocolos,
   crearProtocolo,
   actualizarProtocolo,
   eliminarProtocolo,
@@ -11,10 +12,13 @@ import { autorizarRol } from '../middlewares/autorizarRol';
 
 const router = Router();
 
-// Lectura permitida a Admin (1) y Supervisor (2)
+// Ruta para Admin (1) y Supervisor (2): Obtener todos los protocolos
 router.get('/', validarToken, autorizarRol(1, 2), obtenerProtocolos);
 
-// Solo Admin puede modificar
+// Ruta para Trabajador (3): Obtener solo sus protocolos
+router.get('/mis-protocolos', validarToken, autorizarRol(3), obtenerMisProtocolos);
+
+// Solo Admin (1) puede crear, editar y eliminar protocolos
 router.post('/', validarToken, autorizarRol(1), crearProtocolo);
 router.put('/:id', validarToken, autorizarRol(1), actualizarProtocolo);
 router.delete('/:id', validarToken, autorizarRol(1), eliminarProtocolo);
