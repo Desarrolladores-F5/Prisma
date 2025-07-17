@@ -10,7 +10,6 @@ import { initReporte, Reporte } from './reporte.model';
 import { initFaena, Faena } from './faena.model';
 import { initAuditoria, Auditoria } from './auditoria.model';
 import { initEmpresa, Empresa } from './empresa.model';
-import { initProtocolo, Protocolo } from './protocolo.model';
 import { initCapacitacion, Capacitacion } from './capacitacion.model';
 import { initExamen, Examen } from './examen.model';
 import { initPreguntaExamen, PreguntaExamen } from './pregunta_examen.model';
@@ -20,14 +19,13 @@ import { EPP } from './epp.model';
 import { Notificacion } from './notificacion.model';
 import { MedidaCorrectiva } from './medida_correctiva.model';
 import { Inspeccion } from './inspeccion.model';
-import { initFirmaDigital, FirmaDigital } from './firma_digital.model'; // ✅ Importación corregida
-import { initArchivoAdjunto, ArchivoAdjunto } from './archivoAdjunto.model';
+import { initFirmaDigital, FirmaDigital } from './firma_digital.model'; 
 import { initFormulario, Formulario } from './formulario.model';
 import { initRespuestaFormulario, RespuestaFormulario } from './respuesta_formulario.model';
-import { initTestigo, Testigo } from './testigo.model';
 import { initEstadistica, Estadistica } from './estadistica.model';
 import { initComentario, Comentario } from './comentario.model';
 import { initHistorialCambio, HistorialCambio } from './historial_cambio.model';
+import { initRelDocumentoUsuario, RelDocumentoUsuario } from './rel_documentos_usuarios.model';
 
 // Inicialización de modelos
 initRol(sequelize);
@@ -36,19 +34,17 @@ initReporte(sequelize);
 initFaena(sequelize);
 initAuditoria(sequelize);
 initEmpresa(sequelize);
-initProtocolo(sequelize);
 initCapacitacion(sequelize);
 initExamen(sequelize);
 initPreguntaExamen(sequelize);
 initRespuestaExamen(sequelize);
-initArchivoAdjunto(sequelize);
 initFormulario(sequelize);
 initFirmaDigital(sequelize); 
 initRespuestaFormulario(sequelize);
-initTestigo(sequelize);
 initEstadistica(sequelize);
 initComentario(sequelize);
 initHistorialCambio(sequelize);
+initRelDocumentoUsuario(sequelize);
 
 // ✅ Relaciones generales
 
@@ -122,15 +118,6 @@ Faena.hasMany(Estadistica, { foreignKey: 'faena_id', as: 'estadisticas' });
 Estadistica.belongsTo(Usuario, { foreignKey: 'generado_por', as: 'usuario' });
 Usuario.hasMany(Estadistica, { foreignKey: 'generado_por', as: 'estadisticas_generadas' });
 
-Protocolo.belongsTo(Usuario, { foreignKey: 'responsable_id', as: 'responsable' });
-Usuario.hasMany(Protocolo, { foreignKey: 'responsable_id', as: 'protocolos_responsables' });
-
-Protocolo.belongsTo(Empresa, { foreignKey: 'empresa_id', as: 'empresa' });
-Empresa.hasMany(Protocolo, { foreignKey: 'empresa_id', as: 'protocolos' });
-
-Protocolo.belongsTo(Faena, { foreignKey: 'faena_id', as: 'faena' });
-Faena.hasMany(Protocolo, { foreignKey: 'faena_id', as: 'protocolos' });
-
 MedidaCorrectiva.belongsTo(Usuario, { foreignKey: 'responsable_id', as: 'responsable' });
 Usuario.hasMany(MedidaCorrectiva, { foreignKey: 'responsable_id', as: 'medidas_correctivas' });
 
@@ -161,6 +148,30 @@ Faena.hasMany(EPP, { foreignKey: 'faena_id', as: 'epp_faena' });
 Formulario.belongsTo(Faena, { foreignKey: 'faena_id', as: 'faena' });
 Faena.hasMany(Formulario, { foreignKey: 'faena_id', as: 'formularios' });
 
+// Relación muchos a muchos (para consultas desde Documento hacia Usuario)
+Documento.belongsToMany(Usuario, {
+  through: RelDocumentoUsuario,
+  foreignKey: 'documento_id',
+  otherKey: 'usuario_id',
+  as: 'usuarios_asignados',
+});
+
+// Relación muchos a muchos (para consultas desde Usuario hacia Documento)
+Usuario.belongsToMany(Documento, {
+  through: RelDocumentoUsuario,
+  foreignKey: 'usuario_id',
+  otherKey: 'documento_id',
+  as: 'documentos_asignados',
+});
+
+// Relaciones explícitas para acceso directo a la tabla intermedia
+RelDocumentoUsuario.belongsTo(Documento, { foreignKey: 'documento_id', as: 'documento' });
+RelDocumentoUsuario.belongsTo(Usuario, { foreignKey: 'usuario_id', as: 'usuario' });
+
+Documento.hasMany(RelDocumentoUsuario, { foreignKey: 'documento_id', as: 'asignaciones' });
+Usuario.hasMany(RelDocumentoUsuario, { foreignKey: 'usuario_id', as: 'asignaciones' });
+
+
 
 // ✅ Exportación de modelos y conexión
 export {
@@ -171,7 +182,6 @@ export {
   Faena,
   Auditoria,
   Empresa,
-  Protocolo,
   Capacitacion,
   Examen,
   PreguntaExamen,
@@ -182,11 +192,10 @@ export {
   MedidaCorrectiva,
   Inspeccion,
   FirmaDigital,
-  ArchivoAdjunto,
   Formulario,
   RespuestaFormulario,
-  Testigo,
   Estadistica,
   Comentario,
   HistorialCambio,
+  RelDocumentoUsuario,
 };

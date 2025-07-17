@@ -25,13 +25,12 @@ app.use('/uploads', (req, res, next) => {
   res.setHeader('Access-Control-Allow-Origin', 'http://localhost:3000');
   res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
-  res.setHeader('Cross-Origin-Resource-Policy', 'cross-origin'); // ✅ Clave para imágenes en <img>
+  res.setHeader('Cross-Origin-Resource-Policy', 'cross-origin'); 
   next();
 });
 app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
 
 // ✅ Importar rutas
-import archivoAdjuntoRoutes from './routes/archivoAdjunto.routes';
 import auditoriaRoutes from './routes/auditoria.routes';
 import authRoutes from './routes/auth.routes';
 import capacitacionRoutes from './routes/capacitacion.routes';
@@ -47,19 +46,17 @@ import historialCambioRoutes from './routes/historial_cambio.routes';
 import inspeccionRoutes from './routes/inspeccion.routes';
 import medidaRoutes from './routes/medida_correctiva.routes';
 import notificacionRoutes from './routes/notificacion.routes';
-import protocoloRoutes from './routes/protocolo.routes';
 import reporteRoutes from './routes/reporte.routes';
 import respuestaFormularioRoutes from './routes/respuesta_formulario.routes';
 import rolRoutes from './routes/rol.routes';
-import testigoRoutes from './routes/testigo.routes';
 import uploadRoutes from './routes/upload.routes';
 import usuarioRoutes from './routes/usuario.routes';
 import examenRoutes from './routes/examen.routes';
 import preguntaExamenRoutes from './routes/pregunta_examen.routes';
 import respuestaExamenRoutes from './routes/respuesta_examen.routes';
+import relDocumentoUsuarioRoutes from './routes/rel_documentos_usuarios.routes';
 
 // ✅ Asociar rutas
-app.use('/api/archivos', archivoAdjuntoRoutes);
 app.use('/api/auditorias', auditoriaRoutes);
 app.use('/api/auth', authRoutes);
 app.use('/api/capacitaciones', capacitacionRoutes);
@@ -75,16 +72,15 @@ app.use('/api/historial-cambios', historialCambioRoutes);
 app.use('/api/inspecciones', inspeccionRoutes);
 app.use('/api/medidas', medidaRoutes);
 app.use('/api/notificaciones', notificacionRoutes);
-app.use('/api/protocolos', protocoloRoutes);
 app.use('/api/reportes', reporteRoutes);
 app.use('/api/respuestas-formulario', respuestaFormularioRoutes);
 app.use('/api/roles', rolRoutes);
-app.use('/api/testigos', testigoRoutes);
 app.use('/api/upload', uploadRoutes);
 app.use('/api/usuarios', usuarioRoutes);
 app.use('/api/examenes', examenRoutes);
 app.use('/api/preguntas-examen', preguntaExamenRoutes);
 app.use('/api/respuestas-examen', respuestaExamenRoutes);
+app.use('/api/rel-documentos-usuarios', relDocumentoUsuarioRoutes);
 
 // ✅ Ruta raíz
 app.get('/', (_req, res) => {

@@ -10,7 +10,6 @@ export interface DocumentoAttributes {
   version: string;
   fecha_creacion?: Date;
   activo: boolean;
-  usuario_id: number; 
 }
 
 interface DocumentoCreationAttributes
@@ -26,7 +25,6 @@ export class DocumentoModel
   public version!: string;
   public fecha_creacion!: Date;
   public activo!: boolean;
-  public usuario_id!: number;
 }
 
 export const Documento = sequelize.define<DocumentoModel>('documento', {
@@ -59,14 +57,7 @@ export const Documento = sequelize.define<DocumentoModel>('documento', {
     type: DataTypes.BOOLEAN,
     defaultValue: true,
   },
-  usuario_id: {
-    type: DataTypes.INTEGER,
-    allowNull: false,
-    references: {
-      model: 'usuarios',
-      key: 'id',
-    },
-  },
+  
 }, {
   tableName: 'documentos',
   timestamps: false,

@@ -89,3 +89,25 @@ export const obtenerMisNotificaciones = async (req: Request, res: Response): Pro
     res.status(500).json({ mensaje: '❌ Error al obtener notificaciones personales', error });
   }
 };
+
+// Marcar una notificación como leída (uso del trabajador)
+export const marcarComoLeida = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { id } = req.params;
+
+    const notificacion = await Notificacion.findByPk(id);
+
+    if (!notificacion) {
+      res.status(404).json({ mensaje: 'Notificación no encontrada' });
+      return;
+    }
+
+    notificacion.leido = true;
+    await notificacion.save();
+
+    res.json({ mensaje: '✅ Notificación marcada como leída', notificacion });
+  } catch (error) {
+    console.error('❌ Error al marcar como leída:', error);
+    res.status(500).json({ mensaje: 'Error al actualizar notificación', error });
+  }
+};
