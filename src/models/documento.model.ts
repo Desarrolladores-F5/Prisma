@@ -29,7 +29,7 @@ export class DocumentoModel
 
 export const Documento = sequelize.define<DocumentoModel>('documento', {
   id: {
-    type: DataTypes.INTEGER,
+    type: DataTypes.INTEGER.UNSIGNED, // ✅ Corrección aplicada aquí
     autoIncrement: true,
     primaryKey: true,
   },
@@ -57,7 +57,6 @@ export const Documento = sequelize.define<DocumentoModel>('documento', {
     type: DataTypes.BOOLEAN,
     defaultValue: true,
   },
-  
 }, {
   tableName: 'documentos',
   timestamps: false,

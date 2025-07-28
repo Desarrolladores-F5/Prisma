@@ -61,7 +61,7 @@ app.use('/api/auditorias', auditoriaRoutes);
 app.use('/api/auth', authRoutes);
 app.use('/api/capacitaciones', capacitacionRoutes);
 app.use('/api/comentarios', comentarioRoutes);
-app.use('/api/documentos', documentoRoutes);
+app.use('/api/documentos', documentoRoutes); // ← Ruta principal para documentos
 app.use('/api/empresas', empresaRoutes);
 app.use('/api/epp', eppRoutes);
 app.use('/api/estadisticas', estadisticaRoutes);
@@ -80,7 +80,9 @@ app.use('/api/usuarios', usuarioRoutes);
 app.use('/api/examenes', examenRoutes);
 app.use('/api/preguntas-examen', preguntaExamenRoutes);
 app.use('/api/respuestas-examen', respuestaExamenRoutes);
-app.use('/api/rel-documentos-usuarios', relDocumentoUsuarioRoutes);
+
+// ✅ Rutas para relaciones documento-usuario
+app.use('/api/rel-documentos-usuarios', relDocumentoUsuarioRoutes); // ← Solo aquí
 
 // ✅ Ruta raíz
 app.get('/', (_req, res) => {

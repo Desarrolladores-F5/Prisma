@@ -1,7 +1,9 @@
 // src/controllers/rel_documentos_usuarios.controller.ts
-
 import { Request, Response } from 'express';
-import { RelDocumentoUsuario, Usuario, Documento } from '../models';
+import { RelDocumentoUsuario, Usuario, Documento, FirmaDigital } from '../models';
+import { generarPDFConfirmacion } from '../utils/pdf';
+import crypto from 'crypto';
+import path from 'path';
 
 // ✅ Asignar documento (uno o múltiples usuarios)
 export const asignarDocumentoAUsuario = async (req: Request, res: Response): Promise<void> => {
@@ -20,10 +22,7 @@ export const asignarDocumentoAUsuario = async (req: Request, res: Response): Pro
       }
 
       const usuarios = await Usuario.findAll({
-        where: {
-          activo: true,
-          rol_id: rol_id,
-        },
+        where: { activo: true, rol_id },
       });
 
       if (!usuarios.length) {
@@ -69,30 +68,24 @@ export const asignarDocumentoAUsuario = async (req: Request, res: Response): Pro
   }
 };
 
-// ✅ Obtener documentos asignados por usuario (con datos del documento)
+// ✅ Obtener documentos asignados por usuario
 export const obtenerDocumentosPorUsuario = async (req: Request, res: Response): Promise<void> => {
   try {
     const { usuario_id } = req.params;
 
     const asignaciones = await RelDocumentoUsuario.findAll({
       where: { usuario_id },
-      include: [
-        {
-          model: Documento,
-          as: 'documento',
-        },
-      ],
+      include: [{ model: Documento, as: 'documento' }],
     });
 
-    // Transformar los datos para enviar solo lo necesario al frontend
     const documentos = asignaciones.map((asignacion) => {
       const doc = asignacion.documento?.toJSON?.() || asignacion.documento;
-
       return {
         ...doc,
         fecha_asignacion: asignacion.fecha_asignacion,
         recepcionado: asignacion.recepcionado,
         fecha_recepcion: asignacion.fecha_recepcion,
+        ruta_constancia_pdf: asignacion.ruta_constancia_pdf,
         activo: asignacion.activo,
       };
     });
@@ -104,8 +97,7 @@ export const obtenerDocumentosPorUsuario = async (req: Request, res: Response): 
   }
 };
 
-
-// ✅ Eliminar una asignación específica
+// ✅ Eliminar asignación
 export const eliminarAsignacionDocumentoUsuario = async (req: Request, res: Response): Promise<void> => {
   try {
     const { id } = req.params;
@@ -120,5 +112,116 @@ export const eliminarAsignacionDocumentoUsuario = async (req: Request, res: Resp
   } catch (error) {
     console.error('❌ Error al eliminar asignación:', error);
     res.status(500).json({ mensaje: '❌ Error al eliminar asignación', error });
+  }
+};
+
+// ✅ Confirmaciones por documento
+export const obtenerConfirmacionesPorDocumento = async (req: Request, res: Response): Promise<void> => {
+  const { id } = req.params;
+
+  try {
+    const confirmaciones = await RelDocumentoUsuario.findAll({
+      where: { documento_id: id },
+      include: [
+        { model: Usuario, as: 'usuario', attributes: ['id', 'nombre', 'apellido', 'correo'] },
+        { model: Documento, as: 'documento', attributes: ['id', 'nombre', 'tipo'] },
+      ],
+    });
+
+    const resultados = confirmaciones.map((rel) => ({
+      id: rel.id,
+      usuario_id: rel.usuario?.id,
+      nombre_usuario: `${rel.usuario?.nombre} ${rel.usuario?.apellido}`,
+      correo_usuario: rel.usuario?.correo,
+      documento_id: rel.documento?.id,
+      nombre_documento: rel.documento?.nombre,
+      tipo_documento: rel.documento?.tipo || '',
+      fecha_recepcion: rel.fecha_recepcion,
+      confirmado: rel.recepcionado === true,
+      ruta_constancia_pdf: rel.ruta_constancia_pdf ?? null,
+    }));
+
+    res.status(200).json(resultados);
+  } catch (error) {
+    console.error('❌ Error al obtener confirmaciones del documento:', error);
+    res.status(500).json({ mensaje: '❌ Error al obtener confirmaciones del documento', error });
+  }
+};
+
+// ✅ Confirmar recepción, generar PDF y registrar firma digital
+export const confirmarRecepcion = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { documento_id } = req.params;
+    const usuario_id = (req as any).usuario?.id;
+
+    if (!usuario_id) {
+      res.status(401).json({ mensaje: 'Usuario no autenticado' });
+      return;
+    }
+
+    const relacion = await RelDocumentoUsuario.findOne({
+      where: { documento_id, usuario_id },
+      include: [
+        { model: Documento, as: 'documento' },
+        { model: Usuario, as: 'usuario' },
+      ],
+    });
+
+    if (!relacion || !relacion.documento || !relacion.usuario) {
+      res.status(404).json({ mensaje: 'No se encontró la relación con datos completos.' });
+      return;
+    }
+
+    const fecha = new Date();
+
+    const rutaPDF = await generarPDFConfirmacion({
+      documento: {
+        nombre: relacion.documento.nombre,
+        tipo: relacion.documento.tipo,
+        version: relacion.documento.version || undefined,
+      },
+      usuario: {
+        nombre: relacion.usuario.nombre,
+        apellido: relacion.usuario.apellido,
+        correo: relacion.usuario.correo,
+        firma_imagen_url: relacion.usuario.firma_imagen_url || undefined,
+      },
+      fecha,
+      documentoId: parseInt(documento_id),
+      usuarioId: usuario_id,
+    });
+
+    relacion.recepcionado = true;
+    relacion.fecha_recepcion = fecha;
+    relacion.ruta_constancia_pdf = rutaPDF;
+    await relacion.save();
+
+    // ✅ Firma Digital
+    const hashFirma = crypto
+      .createHash('sha256')
+      .update(`${documento_id}-${usuario_id}-${fecha.toISOString()}`)
+      .digest('hex');
+
+    await FirmaDigital.create({
+      firmante_id: usuario_id,
+      hash_firma: hashFirma,
+      tipo_firma: 'firma_documento',
+      metadata: {
+        entidad: 'documento',
+        entidad_id: documento_id,
+        relacion_id: relacion.id,
+        ruta_constancia_pdf: rutaPDF,
+        navegador: req.headers['user-agent'],
+        fecha: fecha.toISOString(),
+      },
+    });
+
+    res.status(200).json({
+      mensaje: '✅ Recepción confirmada, constancia generada y firma registrada.',
+      ruta_constancia_pdf: rutaPDF,
+    });
+  } catch (error) {
+    console.error('❌ Error al confirmar recepción:', error);
+    res.status(500).json({ mensaje: '❌ Error al confirmar recepción', error });
   }
 };

@@ -11,12 +11,18 @@ export interface RelacionDocumentoUsuarioAttributes {
   activo: boolean;
   recepcionado?: boolean;
   fecha_recepcion?: Date | null;
+  ruta_constancia_pdf?: string | null; 
 }
 
 interface RelacionDocumentoUsuarioCreationAttributes
   extends Optional<
     RelacionDocumentoUsuarioAttributes,
-    'id' | 'fecha_asignacion' | 'activo' | 'recepcionado' | 'fecha_recepcion'
+    | 'id'
+    | 'fecha_asignacion'
+    | 'activo'
+    | 'recepcionado'
+    | 'fecha_recepcion'
+    | 'ruta_constancia_pdf' 
   > {}
 
 export class RelacionDocumentoUsuarioModel
@@ -33,6 +39,7 @@ export class RelacionDocumentoUsuarioModel
   public activo!: boolean;
   public recepcionado!: boolean;
   public fecha_recepcion!: Date | null;
+  public ruta_constancia_pdf!: string | null; 
 
   // ✅ Relaciones correctamente tipadas
   public documento?: DocumentoModel;
@@ -79,6 +86,10 @@ export const initRelDocumentoUsuario = (sequelize: Sequelize) => {
         type: DataTypes.DATE,
         allowNull: true,
       },
+      ruta_constancia_pdf: {
+        type: DataTypes.STRING,
+        allowNull: true,
+      }, // ✅ Definición del nuevo campo en Sequelize
     },
     {
       sequelize,

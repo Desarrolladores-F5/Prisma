@@ -1,27 +1,30 @@
+// src/models/firma_digital.model.ts
 import { DataTypes, Model, Optional, Sequelize } from 'sequelize';
 
 export interface FirmaDigitalAttributes {
   id: number;
   firmante_id: number;
+  documento_id?: number;
   fecha: Date;
   hash_firma: string;
   tipo_firma: string;
   metadata?: object;
-  firma_imagen_url?: string; 
+  firma_imagen_url?: string;
 }
 
 export interface FirmaDigitalCreationAttributes
-  extends Optional<FirmaDigitalAttributes, 'id' | 'fecha' | 'metadata' | 'firma_imagen_url'> {}
+  extends Optional<FirmaDigitalAttributes, 'id' | 'fecha' | 'documento_id' | 'metadata' | 'firma_imagen_url'> {}
 
 export class FirmaDigital extends Model<FirmaDigitalAttributes, FirmaDigitalCreationAttributes>
   implements FirmaDigitalAttributes {
   public id!: number;
   public firmante_id!: number;
+  public documento_id?: number;
   public fecha!: Date;
   public hash_firma!: string;
   public tipo_firma!: string;
   public metadata?: object;
-  public firma_imagen_url?: string; 
+  public firma_imagen_url?: string;
 }
 
 export function initFirmaDigital(sequelize: Sequelize): void {
@@ -37,6 +40,16 @@ export function initFirmaDigital(sequelize: Sequelize): void {
         allowNull: false,
         references: {
           model: 'usuarios',
+          key: 'id',
+        },
+        onUpdate: 'CASCADE',
+        onDelete: 'CASCADE',
+      },
+      documento_id: {
+        type: DataTypes.INTEGER.UNSIGNED,
+        allowNull: true,
+        references: {
+          model: 'documentos',
           key: 'id',
         },
         onUpdate: 'CASCADE',

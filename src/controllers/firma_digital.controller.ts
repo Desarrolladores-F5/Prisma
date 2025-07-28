@@ -1,6 +1,6 @@
 // src/controllers/firma_digital.controller.ts
 import { Request, Response } from 'express';
-import { FirmaDigital, RespuestaFormulario } from '../models';
+import { FirmaDigital, RespuestaFormulario, RelDocumentoUsuario } from '../models';
 
 // ✅ Obtener todas las firmas digitales
 export const obtenerFirmas = async (_req: Request, res: Response): Promise<void> => {
@@ -12,7 +12,7 @@ export const obtenerFirmas = async (_req: Request, res: Response): Promise<void>
   }
 };
 
-// ✅ Crear una nueva firma digital con soporte para imagen
+// ✅ Crear una nueva firma digital con soporte para imagen y asociación
 export const crearFirma = async (req: Request, res: Response): Promise<void> => {
   try {
     if (!req.body || typeof req.body !== 'object') {
@@ -25,10 +25,9 @@ export const crearFirma = async (req: Request, res: Response): Promise<void> => 
       hash_firma,
       tipo_firma,
       metadata,
-      firma_imagen_url // ✅ Nuevo campo opcional para imagen visible
+      firma_imagen_url // Opcional
     } = req.body;
 
-    // Validación de campos obligatorios
     if (!firmante_id || !hash_firma || !tipo_firma) {
       res.status(400).json({
         mensaje: '❌ Campos requeridos faltantes (firmante_id, hash_firma o tipo_firma)'
@@ -44,7 +43,6 @@ export const crearFirma = async (req: Request, res: Response): Promise<void> => 
       firma_imagen_url
     });
 
-    // Crear la firma
     const nuevaFirma = await FirmaDigital.create({
       firmante_id,
       hash_firma,
@@ -54,7 +52,7 @@ export const crearFirma = async (req: Request, res: Response): Promise<void> => 
       fecha: new Date(),
     });
 
-    // Actualizar estado de respuesta_formulario si aplica
+    // 🔁 Asociar con respuesta_formulario si aplica
     if (metadata?.entidad === 'respuesta_formulario' && metadata?.entidad_id) {
       const resultado = await RespuestaFormulario.update(
         { estado_firma: 'firmado' },
@@ -65,6 +63,28 @@ export const crearFirma = async (req: Request, res: Response): Promise<void> => 
         console.log(`✅ RespuestaFormulario ID ${metadata.entidad_id} actualizada`);
       } else {
         console.warn(`⚠️ No se encontró RespuestaFormulario con ID ${metadata.entidad_id}`);
+      }
+    }
+
+    // 🔁 Asociar con documento si aplica
+    if (metadata?.entidad === 'documento' && metadata?.entidad_id) {
+      const actualizado = await RelDocumentoUsuario.update(
+        {
+          recepcionado: true,
+          fecha_recepcion: new Date(),
+        },
+        {
+          where: {
+            documento_id: metadata.entidad_id,
+            usuario_id: firmante_id
+          }
+        }
+      );
+
+      if (actualizado[0] > 0) {
+        console.log(`✅ Documento ID ${metadata.entidad_id} marcado como recepcionado por usuario ${firmante_id}`);
+      } else {
+        console.warn(`⚠️ No se encontró relación documento-usuario para ID ${metadata.entidad_id}`);
       }
     }
 

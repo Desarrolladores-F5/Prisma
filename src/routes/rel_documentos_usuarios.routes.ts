@@ -3,18 +3,28 @@ import { Router } from 'express';
 import {
   asignarDocumentoAUsuario,
   obtenerDocumentosPorUsuario,
-  eliminarAsignacionDocumentoUsuario // 👈 Asegúrate de tener esta función creada y exportada
+  eliminarAsignacionDocumentoUsuario,
+  obtenerConfirmacionesPorDocumento,
+  confirmarRecepcion,
 } from '../controllers/rel_documentos_usuarios.controller';
+import { validarToken } from '../middlewares/validarToken';
+import { esAdministrador } from '../middlewares/autorizarRol';
 
 const router = Router();
 
-// Asignar un documento a un usuario
-router.post('/', asignarDocumentoAUsuario);
+// Asignar documento (solo admin)
+router.post('/', validarToken, esAdministrador, asignarDocumentoAUsuario);
 
-// Obtener documentos por ID de usuario
-router.get('/:usuario_id', obtenerDocumentosPorUsuario);
+// Obtener documentos asignados por usuario
+router.get('/:usuario_id', validarToken, obtenerDocumentosPorUsuario);
 
-// Eliminar asignación específica
-router.delete('/:id', eliminarAsignacionDocumentoUsuario); // Asegúrate de que esta función exista
+// Confirmar recepción de documento (trabajador autenticado)
+router.patch('/confirmar/:documento_id', validarToken, confirmarRecepcion);
+
+// Obtener confirmaciones por documento (solo admin)
+router.get('/documento/:id/confirmaciones', validarToken, esAdministrador, obtenerConfirmacionesPorDocumento);
+
+// Eliminar asignación
+router.delete('/:id', validarToken, esAdministrador, eliminarAsignacionDocumentoUsuario);
 
 export default router;

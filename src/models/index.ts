@@ -19,7 +19,7 @@ import { EPP } from './epp.model';
 import { Notificacion } from './notificacion.model';
 import { MedidaCorrectiva } from './medida_correctiva.model';
 import { Inspeccion } from './inspeccion.model';
-import { initFirmaDigital, FirmaDigital } from './firma_digital.model'; 
+import { initFirmaDigital, FirmaDigital } from './firma_digital.model';
 import { initFormulario, Formulario } from './formulario.model';
 import { initRespuestaFormulario, RespuestaFormulario } from './respuesta_formulario.model';
 import { initEstadistica, Estadistica } from './estadistica.model';
@@ -27,7 +27,7 @@ import { initComentario, Comentario } from './comentario.model';
 import { initHistorialCambio, HistorialCambio } from './historial_cambio.model';
 import { initRelDocumentoUsuario, RelDocumentoUsuario } from './rel_documentos_usuarios.model';
 
-// Inicialización de modelos
+// 🔹 Inicialización de modelos
 initRol(sequelize);
 initUsuario(sequelize);
 initReporte(sequelize);
@@ -39,15 +39,14 @@ initExamen(sequelize);
 initPreguntaExamen(sequelize);
 initRespuestaExamen(sequelize);
 initFormulario(sequelize);
-initFirmaDigital(sequelize); 
+initFirmaDigital(sequelize);
 initRespuestaFormulario(sequelize);
 initEstadistica(sequelize);
 initComentario(sequelize);
 initHistorialCambio(sequelize);
 initRelDocumentoUsuario(sequelize);
 
-// ✅ Relaciones generales
-
+// 🔹 Relaciones generales
 Usuario.belongsTo(Rol, { foreignKey: 'rol_id', as: 'rol' });
 Rol.hasMany(Usuario, { foreignKey: 'rol_id', as: 'usuarios' });
 
@@ -136,8 +135,12 @@ Faena.hasMany(Inspeccion, { foreignKey: 'faena_id', as: 'inspecciones' });
 Inspeccion.belongsTo(Usuario, { foreignKey: 'inspector_id', as: 'inspector' });
 Usuario.hasMany(Inspeccion, { foreignKey: 'inspector_id', as: 'inspecciones_realizadas' });
 
-FirmaDigital.belongsTo(Usuario, { foreignKey: 'usuario_id', as: 'usuario' });
-Usuario.hasMany(FirmaDigital, { foreignKey: 'usuario_id', as: 'firmas' });
+// 🔁 Corrección aquí — relación entre FirmaDigital, Usuario y Documento
+FirmaDigital.belongsTo(Usuario, { foreignKey: 'firmante_id', as: 'firmante' });
+Usuario.hasMany(FirmaDigital, { foreignKey: 'firmante_id', as: 'firmas_digitales' });
+
+FirmaDigital.belongsTo(Documento, { foreignKey: 'documento_id', as: 'documento' });
+Documento.hasMany(FirmaDigital, { foreignKey: 'documento_id', as: 'firmas_digitales' });
 
 EPP.belongsTo(Usuario, { foreignKey: 'usuario_id', as: 'usuario' });
 Usuario.hasMany(EPP, { foreignKey: 'usuario_id', as: 'epp_asignado' });
@@ -148,7 +151,7 @@ Faena.hasMany(EPP, { foreignKey: 'faena_id', as: 'epp_faena' });
 Formulario.belongsTo(Faena, { foreignKey: 'faena_id', as: 'faena' });
 Faena.hasMany(Formulario, { foreignKey: 'faena_id', as: 'formularios' });
 
-// Relación muchos a muchos (para consultas desde Documento hacia Usuario)
+// Relación muchos a muchos: Documento ←→ Usuario
 Documento.belongsToMany(Usuario, {
   through: RelDocumentoUsuario,
   foreignKey: 'documento_id',
@@ -156,7 +159,6 @@ Documento.belongsToMany(Usuario, {
   as: 'usuarios_asignados',
 });
 
-// Relación muchos a muchos (para consultas desde Usuario hacia Documento)
 Usuario.belongsToMany(Documento, {
   through: RelDocumentoUsuario,
   foreignKey: 'usuario_id',
@@ -164,16 +166,14 @@ Usuario.belongsToMany(Documento, {
   as: 'documentos_asignados',
 });
 
-// Relaciones explícitas para acceso directo a la tabla intermedia
+// Relaciones explícitas tabla intermedia
 RelDocumentoUsuario.belongsTo(Documento, { foreignKey: 'documento_id', as: 'documento' });
 RelDocumentoUsuario.belongsTo(Usuario, { foreignKey: 'usuario_id', as: 'usuario' });
 
 Documento.hasMany(RelDocumentoUsuario, { foreignKey: 'documento_id', as: 'asignaciones' });
 Usuario.hasMany(RelDocumentoUsuario, { foreignKey: 'usuario_id', as: 'asignaciones' });
 
-
-
-// ✅ Exportación de modelos y conexión
+// ✅ Exportación de modelos
 export {
   sequelize,
   Rol,
