@@ -3,7 +3,6 @@ import { Request, Response } from 'express';
 import { RelDocumentoUsuario, Usuario, Documento, FirmaDigital } from '../models';
 import { generarPDFConfirmacion } from '../utils/pdf';
 import crypto from 'crypto';
-import path from 'path';
 
 // ✅ Asignar documento (uno o múltiples usuarios)
 export const asignarDocumentoAUsuario = async (req: Request, res: Response): Promise<void> => {
@@ -21,6 +20,7 @@ export const asignarDocumentoAUsuario = async (req: Request, res: Response): Pro
         return;
       }
 
+      // Si tu modelo Usuario mantiene "activo", puedes seguir filtrando por ahí.
       const usuarios = await Usuario.findAll({
         where: { activo: true, rol_id },
       });
@@ -39,9 +39,7 @@ export const asignarDocumentoAUsuario = async (req: Request, res: Response): Pro
       await RelDocumentoUsuario.bulkCreate(relaciones, { ignoreDuplicates: true });
 
       res.status(201).json({ mensaje: `✅ Documento asignado a ${usuarios.length} usuario(s) con rol.` });
-    }
-
-    else if (asignacion_tipo === 'usuarios') {
+    } else if (asignacion_tipo === 'usuarios') {
       if (!usuario_ids || !Array.isArray(usuario_ids) || usuario_ids.length === 0) {
         res.status(400).json({ mensaje: 'Debe especificar al menos un ID de usuario.' });
         return;
@@ -56,12 +54,9 @@ export const asignarDocumentoAUsuario = async (req: Request, res: Response): Pro
       await RelDocumentoUsuario.bulkCreate(relaciones, { ignoreDuplicates: true });
 
       res.status(201).json({ mensaje: '✅ Documento asignado a los usuarios seleccionados.' });
-    }
-
-    else {
+    } else {
       res.status(400).json({ mensaje: 'Tipo de asignación no válido.' });
     }
-
   } catch (error) {
     console.error('❌ Error al asignar documento:', error);
     res.status(500).json({ mensaje: '❌ Error al asignar documento', error });
@@ -86,7 +81,7 @@ export const obtenerDocumentosPorUsuario = async (req: Request, res: Response): 
         recepcionado: asignacion.recepcionado,
         fecha_recepcion: asignacion.fecha_recepcion,
         ruta_constancia_pdf: asignacion.ruta_constancia_pdf,
-        activo: asignacion.activo,
+        // 🔥 campo "activo" eliminado: no lo exponemos desde la relación
       };
     });
 

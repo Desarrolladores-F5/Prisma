@@ -5,7 +5,16 @@ import bcrypt from 'bcryptjs';
 
 const tiposPermitidos = ['Plazo fijo', 'Indefinido', 'Honorarios', 'Jornada parcial'];
 
-// Crear nuevo usuario con firma opcional
+/** Devuelve ruta relativa servible: /uploads/firmas/<file> o /uploads/fotos/<file> */
+const getFilePath = (req: Request, field: 'firma' | 'foto'): string | undefined => {
+  const files = (req as any).files as Record<string, Express.Multer.File[]>;
+  const f = files?.[field]?.[0];
+  if (!f) return undefined;
+  const subdir = field === 'foto' ? 'fotos' : 'firmas';
+  return `/uploads/${subdir}/${f.filename}`;
+};
+
+/* ========== Crear ========== */
 export const crearUsuario = async (req: Request, res: Response): Promise<void> => {
   try {
     const { contraseña, ...datosRestantes } = req.body;
@@ -14,7 +23,6 @@ export const crearUsuario = async (req: Request, res: Response): Promise<void> =
       res.status(400).json({ mensaje: '❌ Tipo de contrato no válido' });
       return;
     }
-
     if (!contraseña || contraseña.trim() === '') {
       res.status(400).json({ mensaje: '❌ La contraseña es obligatoria' });
       return;
@@ -23,47 +31,38 @@ export const crearUsuario = async (req: Request, res: Response): Promise<void> =
     const salt = bcrypt.genSaltSync(10);
     const hash = bcrypt.hashSync(contraseña, salt);
 
-    let firmaImagenUrl: string | undefined = undefined;
-    if (req.file) {
-      firmaImagenUrl = req.file.filename; // ✅ Solo el nombre del archivo
-    }
+    const firma_imagen_url = getFilePath(req, 'firma');
+    const foto_url = getFilePath(req, 'foto');
 
     const usuario = await Usuario.create({
       ...datosRestantes,
       contraseña_hash: hash,
-      salt: salt,
-      firma_imagen_url: firmaImagenUrl,
+      salt,
+      firma_imagen_url,
+      foto_url,
     });
 
-    res.status(201).json({
-      mensaje: '✅ Usuario creado correctamente',
-      usuario,
-    });
+    res.status(201).json({ mensaje: '✅ Usuario creado correctamente', usuario });
   } catch (error: any) {
     console.error('❌ Error al crear usuario:', error);
-
     if (error.name === 'SequelizeUniqueConstraintError') {
       res.status(400).json({
         mensaje: 'El RUT o el correo ya están registrados',
-        campo: error.errors[0].path,
+        campo: error.errors?.[0]?.path,
       });
       return;
     }
-
-    res.status(500).json({
-      mensaje: '❌ Error interno al crear usuario',
-      error,
-    });
+    res.status(500).json({ mensaje: '❌ Error interno al crear usuario', error });
   }
 };
 
-// Actualizar usuario con firma opcional
+/* ========== Actualizar ========== */
 export const actualizarUsuario = async (req: Request, res: Response): Promise<void> => {
   try {
     const { id } = req.params;
-    const datosRestantes: any = req.body || {};
+    const datos: any = req.body || {};
 
-    const tipoContrato = datosRestantes.tipo_contrato?.trim();
+    const tipoContrato = datos.tipo_contrato?.trim();
     if (!tipoContrato || !tiposPermitidos.includes(tipoContrato)) {
       res.status(400).json({ mensaje: '❌ Tipo de contrato no válido' });
       return;
@@ -75,36 +74,37 @@ export const actualizarUsuario = async (req: Request, res: Response): Promise<vo
       return;
     }
 
-    if (datosRestantes.contraseña && datosRestantes.contraseña.trim() !== '') {
+    if (datos.contraseña && datos.contraseña.trim() !== '') {
       const salt = bcrypt.genSaltSync(10);
-      const hash = bcrypt.hashSync(datosRestantes.contraseña, salt);
-      datosRestantes.contraseña_hash = hash;
-      datosRestantes.salt = salt;
+      const hash = bcrypt.hashSync(datos.contraseña, salt);
+      datos.contraseña_hash = hash;
+      datos.salt = salt;
     }
+    delete datos.contraseña;
 
-    if (req.file) {
-      datosRestantes.firma_imagen_url = req.file.filename; // ✅ Solo el nombre del archivo
-    }
+    const nuevaFirma = getFilePath(req, 'firma');
+    if (nuevaFirma) datos.firma_imagen_url = nuevaFirma;
 
-    await usuario.update(datosRestantes);
+    const nuevaFoto = getFilePath(req, 'foto');
+    if (nuevaFoto) datos.foto_url = nuevaFoto;
+
+    await usuario.update(datos);
 
     res.json({ mensaje: '✅ Usuario actualizado correctamente', id: usuario.id });
   } catch (error: any) {
     console.error('❌ Error al actualizar usuario:', error);
-
     if (error.name === 'SequelizeUniqueConstraintError') {
       res.status(400).json({
         mensaje: 'El RUT o el correo ya están registrados',
-        campo: error.errors[0].path,
+        campo: error.errors?.[0]?.path,
       });
       return;
     }
-
     res.status(500).json({ mensaje: '❌ Error al actualizar usuario', error });
   }
 };
 
-// Otros métodos (sin cambios)
+/* ========== Listar (activos) ========== */
 export const obtenerUsuarios = async (_req: Request, res: Response): Promise<void> => {
   try {
     const usuarios = await Usuario.findAll({
@@ -114,13 +114,13 @@ export const obtenerUsuarios = async (_req: Request, res: Response): Promise<voi
         { model: Faena, as: 'faena', attributes: ['id', 'nombre'] },
       ],
     });
-
     res.status(200).json(usuarios);
   } catch (error) {
     res.status(500).json({ mensaje: '❌ Error al obtener usuarios', error });
   }
 };
 
+/* ========== Eliminar (inactivar) ========== */
 export const eliminarUsuario = async (req: Request, res: Response): Promise<void> => {
   try {
     const { id } = req.params;
@@ -129,7 +129,6 @@ export const eliminarUsuario = async (req: Request, res: Response): Promise<void
       res.status(404).json({ mensaje: 'Usuario no encontrado' });
       return;
     }
-
     await usuario.update({ activo: false });
     res.json({ mensaje: '✅ Usuario desactivado correctamente' });
   } catch (error) {
@@ -137,6 +136,7 @@ export const eliminarUsuario = async (req: Request, res: Response): Promise<void
   }
 };
 
+/* ========== Reactivar ========== */
 export const reactivarUsuario = async (req: Request, res: Response): Promise<void> => {
   try {
     const { id } = req.params;
@@ -145,7 +145,6 @@ export const reactivarUsuario = async (req: Request, res: Response): Promise<voi
       res.status(404).json({ mensaje: 'Usuario no encontrado' });
       return;
     }
-
     await usuario.update({ activo: true });
     res.json({ mensaje: '✅ Usuario reactivado correctamente' });
   } catch (error) {
@@ -153,6 +152,7 @@ export const reactivarUsuario = async (req: Request, res: Response): Promise<voi
   }
 };
 
+/* ========== Conteo de activos ========== */
 export const contarUsuarios = async (_req: Request, res: Response): Promise<void> => {
   try {
     const total = await Usuario.count({ where: { activo: true } });
@@ -162,19 +162,10 @@ export const contarUsuarios = async (_req: Request, res: Response): Promise<void
   }
 };
 
-export const obtenerUsuariosActivos = async (_req: Request, res: Response): Promise<void> => {
-  try {
-    const usuarios = await Usuario.findAll({ where: { activo: true } });
-    res.json(usuarios);
-  } catch (error) {
-    res.status(500).json({ mensaje: '❌ Error al obtener usuarios activos', error });
-  }
-};
-
+/* ========== Listar por faena (activos) ========== */
 export const obtenerUsuariosPorFaena = async (req: Request, res: Response): Promise<void> => {
   try {
     const { faenaId } = req.params;
-
     const usuarios = await Usuario.findAll({
       where: { activo: true, faena_id: faenaId },
       include: [
@@ -182,13 +173,13 @@ export const obtenerUsuariosPorFaena = async (req: Request, res: Response): Prom
         { model: Faena, as: 'faena', attributes: ['id', 'nombre'] },
       ],
     });
-
     res.status(200).json(usuarios);
   } catch (error) {
     res.status(500).json({ mensaje: '❌ Error al obtener usuarios por faena', error });
   }
 };
 
+/* ========== Obtener por ID ========== */
 export const obtenerUsuarioPorId = async (req: Request, res: Response): Promise<void> => {
   try {
     const { id } = req.params;
@@ -198,12 +189,10 @@ export const obtenerUsuarioPorId = async (req: Request, res: Response): Promise<
         { model: Faena, as: 'faena', attributes: ['id', 'nombre'] },
       ],
     });
-
     if (!usuario) {
       res.status(404).json({ mensaje: 'Usuario no encontrado' });
       return;
     }
-
     res.json(usuario);
   } catch (error) {
     res.status(500).json({ mensaje: '❌ Error al obtener usuario', error });

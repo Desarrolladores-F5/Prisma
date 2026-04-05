@@ -1,4 +1,5 @@
 import { DataTypes, Model, Sequelize } from 'sequelize';
+import { Usuario } from './usuario.model';
 
 export class Comentario extends Model {
   public id!: number;
@@ -41,5 +42,12 @@ export function initComentario(sequelize: Sequelize) {
     modelName: 'comentario',
     tableName: 'comentarios',
     timestamps: false,
+  });
+}
+
+export function associateComentario() {
+  Comentario.belongsTo(Usuario, {
+    foreignKey: 'autor_id',
+    as: 'autor',
   });
 }

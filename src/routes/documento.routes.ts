@@ -8,7 +8,7 @@ import {
   eliminarDocumento,
   obtenerDocumentoPorId,
   confirmarRecepcionDocumento,
-  obtenerConfirmacionesDocumento // ✅ Nueva función para ver confirmaciones
+  obtenerConfirmacionesDocumento,
 } from '../controllers/documento.controller';
 
 import { validarToken } from '../middlewares/validarToken';
@@ -29,13 +29,17 @@ router.put('/recepcionar/:documentoId', validarToken, confirmarRecepcionDocument
 router.get('/:id', validarToken, esAdministrador, obtenerDocumentoPorId);
 
 // 🔹 Obtener confirmaciones de recepción por documento (solo administrador)
-router.get('/:id/confirmaciones', validarToken, esAdministrador, obtenerConfirmacionesDocumento); // ✅ Nueva ruta
+router.get('/:id/confirmaciones', validarToken, esAdministrador, obtenerConfirmacionesDocumento);
 
 // 🔹 Crear un nuevo documento y asignarlo (solo administrador)
 router.post('/', validarToken, esAdministrador, crearDocumento);
 
-// 🔹 Actualizar un documento por ID (solo administrador)
-router.put('/:id', validarToken, esAdministrador, actualizarDocumento);
+// 🔹 Actualizar parcialmente un documento (solo administrador)
+//    Ej: PATCH /:id  { "activo": false }
+router.patch('/:id', validarToken, esAdministrador, actualizarDocumento);
+
+// (Opcional) si quieres conservar PUT para updates completos, puedes dejarlo en paralelo:
+// router.put('/:id', validarToken, esAdministrador, actualizarDocumento);
 
 // 🔹 Eliminar (soft delete) un documento por ID (solo administrador)
 router.delete('/:id', validarToken, esAdministrador, eliminarDocumento);

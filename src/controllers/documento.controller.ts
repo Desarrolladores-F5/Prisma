@@ -1,119 +1,166 @@
 // src/controllers/documento.controller.ts
 import { Request, Response } from 'express';
 import { Documento, RelDocumentoUsuario, Usuario } from '../models';
-import fs from 'fs';
-import path from 'path';
-import { generarPDFConfirmacion } from '../utils/pdf'; // ✅ Utilidad importada
+import { generarPDFConfirmacion } from '../utils/pdf';
 
+/** Normaliza y valida que la URL pertenezca a /uploads/... */
+function normalizeUploadPath(raw?: string): string | undefined {
+  if (raw == null) return undefined;
+  // Si viene absoluta, extraemos el pathname
+  try {
+    const u = new URL(raw);
+    const pathname = u.pathname || '';
+    if (!pathname.startsWith('/uploads/')) {
+      throw new Error('La URL debe comenzar con /uploads/');
+    }
+    return pathname;
+  } catch {
+    // No era URL absoluta => validar relativa
+    if (!raw.startsWith('/uploads/')) {
+      throw new Error('La URL debe comenzar con /uploads/');
+    }
+    return raw;
+  }
+}
+
+/** Obtener todos los documentos */
 export const obtenerDocumentos = async (_req: Request, res: Response): Promise<void> => {
   try {
-    const documentos = await Documento.findAll({ where: { activo: true } });
+    const documentos = await Documento.findAll();
     res.json(documentos);
   } catch (error) {
     res.status(500).json({ mensaje: '❌ Error al obtener documentos', error });
   }
 };
 
+/** Crear documento y asignarlo según criterio */
 export const crearDocumento = async (req: Request, res: Response): Promise<void> => {
   try {
     const {
-      nombre, tipo, url, version, activo = true,
-      asignacion_tipo, usuario_ids = [], rol_id,
+      nombre,
+      tipo,
+      url,
+      version,
+      asignacion_tipo,
+      usuario_ids = [],
+      rol_id,
     } = req.body;
 
     const creador_id = (req as any).usuario?.id;
-
     if (!creador_id) {
       res.status(401).json({ mensaje: '❌ Usuario no autenticado' });
       return;
     }
+
     if (!nombre || !tipo || !url || !version || !asignacion_tipo) {
       res.status(400).json({ mensaje: '❌ Faltan campos requeridos' });
       return;
     }
-    if (!url.startsWith('/uploads/')) {
-      res.status(400).json({ mensaje: '❌ La URL debe comenzar con /uploads/' });
-      return;
-    }
 
-    const nuevoDocumento = await Documento.create({ nombre, tipo, url, version, activo });
+    const urlNormalizada = normalizeUploadPath(url);
 
+    const nuevoDocumento = await Documento.create({
+      nombre,
+      tipo,
+      url: urlNormalizada!,
+      version,
+    });
+
+    // Asignaciones
     let usuariosAsignados: number[] = [];
     switch (asignacion_tipo) {
-      case 'todos':
-        usuariosAsignados = (await Usuario.findAll({ where: { activo: true } })).map(u => u.id);
+      case 'todos': {
+        const usuarios = await Usuario.findAll({ where: { /* si tienes 'activo' en usuarios, puedes filtrar aquí */ } });
+        usuariosAsignados = usuarios.map(u => u.id);
         break;
-      case 'rol':
+      }
+      case 'rol': {
         if (!rol_id) {
           res.status(400).json({ mensaje: '❌ Falta rol_id' });
           return;
         }
-        usuariosAsignados = (await Usuario.findAll({ where: { rol_id, activo: true } })).map(u => u.id);
+        const usuarios = await Usuario.findAll({ where: { rol_id } });
+        usuariosAsignados = usuarios.map(u => u.id);
         break;
-      case 'usuarios':
+      }
+      case 'usuarios': {
         if (!Array.isArray(usuario_ids)) {
           res.status(400).json({ mensaje: '❌ usuario_ids debe ser un arreglo' });
           return;
         }
         usuariosAsignados = usuario_ids;
         break;
+      }
       default:
         res.status(400).json({ mensaje: '❌ Tipo de asignación inválido' });
         return;
     }
 
-    await RelDocumentoUsuario.bulkCreate(
-      usuariosAsignados.map(usuario_id => ({
-        documento_id: nuevoDocumento.id,
-        usuario_id,
-        fecha_asignacion: new Date(),
-      }))
-    );
+    if (usuariosAsignados.length > 0) {
+      await RelDocumentoUsuario.bulkCreate(
+        usuariosAsignados.map(usuario_id => ({
+          documento_id: nuevoDocumento.id,
+          usuario_id,
+          fecha_asignacion: new Date(),
+        }))
+      );
+    }
 
     res.status(201).json({
       mensaje: '✅ Documento creado y asignado correctamente',
       documento: nuevoDocumento,
     });
-  } catch (error) {
+  } catch (error: any) {
     console.error('❌ Error al crear documento:', error);
-    res.status(500).json({ mensaje: '❌ Error al crear documento', error });
+    res.status(500).json({ mensaje: `❌ ${error?.message || 'Error al crear documento'}`, error });
   }
 };
 
+/** Actualización parcial del documento (sin campo 'activo') */
 export const actualizarDocumento = async (req: Request, res: Response): Promise<void> => {
   try {
     const { id } = req.params;
-    const { nombre, tipo, url, version, activo } = req.body;
+    const documento = await Documento.findByPk(id);
 
-    if (!nombre || !tipo || !url || !version) {
-      res.status(400).json({ mensaje: '❌ Faltan campos requeridos' });
-      return;
-    }
-    if (!url.startsWith('/uploads/')) {
-      res.status(400).json({ mensaje: '❌ La URL debe comenzar con /uploads/' });
-      return;
-    }
-
-    const [actualizado] = await Documento.update({ nombre, tipo, url, version, activo }, { where: { id } });
-
-    if (actualizado) {
-      const documento = await Documento.findByPk(id);
-      res.json(documento);
-    } else {
+    if (!documento) {
       res.status(404).json({ mensaje: '❌ Documento no encontrado' });
+      return;
     }
-  } catch (error) {
-    res.status(500).json({ mensaje: '❌ Error al actualizar documento', error });
+
+    const {
+      nombre,
+      tipo,
+      url,
+      version,
+    }: { nombre?: string; tipo?: string; url?: string; version?: string } = req.body;
+
+    const data: any = {};
+    if (nombre !== undefined) data.nombre = nombre;
+    if (tipo !== undefined) data.tipo = tipo;
+    if (version !== undefined) data.version = version;
+    if (url !== undefined) data.url = normalizeUploadPath(url);
+
+    if (Object.keys(data).length === 0) {
+      res.status(400).json({ mensaje: '❌ No se enviaron campos para actualizar' });
+      return;
+    }
+
+    await documento.update(data);
+    res.json({ mensaje: '✅ Documento actualizado correctamente', id: documento.id });
+  } catch (error: any) {
+    console.error('❌ Error al actualizar documento:', error);
+    res.status(400).json({ mensaje: `❌ ${error?.message || 'Error al actualizar documento'}` });
   }
 };
 
+/** Eliminar documento (hard delete) */
 export const eliminarDocumento = async (req: Request, res: Response): Promise<void> => {
   try {
     const { id } = req.params;
-    const [resultado] = await Documento.update({ activo: false }, { where: { id } });
+    const rows = await Documento.destroy({ where: { id } });
 
-    if (resultado) {
-      res.json({ mensaje: '✅ Documento eliminado (soft delete)' });
+    if (rows > 0) {
+      res.json({ mensaje: '✅ Documento eliminado' });
     } else {
       res.status(404).json({ mensaje: '❌ Documento no encontrado' });
     }
@@ -122,6 +169,7 @@ export const eliminarDocumento = async (req: Request, res: Response): Promise<vo
   }
 };
 
+/** Documentos asignados al usuario autenticado */
 export const obtenerMisDocumentos = async (req: Request, res: Response): Promise<void> => {
   try {
     const usuario = (req as any).usuario;
@@ -134,36 +182,37 @@ export const obtenerMisDocumentos = async (req: Request, res: Response): Promise
       include: [
         {
           association: 'asignaciones',
-          where: { usuario_id: usuario.id, activo: true },
+          where: { usuario_id: usuario.id }, // 🔸 sin condición de 'activo'
           required: true,
           attributes: ['fecha_asignacion', 'recepcionado', 'fecha_recepcion', 'ruta_constancia_pdf'],
         },
       ],
-      where: { activo: true },
     });
 
-    res.json(documentos.map((doc: any) => {
-      const a = doc.asignaciones[0];
-      return {
-        id: doc.id,
-        nombre: doc.nombre,
-        tipo: doc.tipo,
-        url: doc.url,
-        version: doc.version,
-        fecha_creacion: doc.fecha_creacion,
-        activo: doc.activo,
-        recepcionado: a?.recepcionado ?? false,
-        fecha_recepcion: a?.fecha_recepcion ?? null,
-        fecha_asignacion: a?.fecha_asignacion ?? null,
-        ruta_constancia_pdf: a?.ruta_constancia_pdf ?? null,
-      };
-    }));
+    res.json(
+      documentos.map((doc: any) => {
+        const a = doc.asignaciones[0];
+        return {
+          id: doc.id,
+          nombre: doc.nombre,
+          tipo: doc.tipo,
+          url: doc.url,
+          version: doc.version,
+          fecha_creacion: doc.fecha_creacion,
+          recepcionado: a?.recepcionado ?? false,
+          fecha_recepcion: a?.fecha_recepcion ?? null,
+          fecha_asignacion: a?.fecha_asignacion ?? null,
+          ruta_constancia_pdf: a?.ruta_constancia_pdf ?? null,
+        };
+      })
+    );
   } catch (error) {
-    console.error('❌ Error al obtener documentos:', error);
+    console.error('❌ Error al obtener documentos del usuario:', error);
     res.status(500).json({ mensaje: '❌ Error al obtener documentos del usuario', error });
   }
 };
 
+/** Obtener un documento por ID */
 export const obtenerDocumentoPorId = async (req: Request, res: Response): Promise<void> => {
   try {
     const documento = await Documento.findByPk(req.params.id);
@@ -177,6 +226,7 @@ export const obtenerDocumentoPorId = async (req: Request, res: Response): Promis
   }
 };
 
+/** Confirmar recepción de documento y generar constancia PDF */
 export const confirmarRecepcionDocumento = async (req: Request, res: Response): Promise<void> => {
   const usuario = (req as any).usuario;
   const documentoId = Number(req.params.documentoId);
@@ -210,11 +260,9 @@ export const confirmarRecepcionDocumento = async (req: Request, res: Response): 
       return;
     }
 
-    // Actualizar estado de recepción
     relacion.recepcionado = true;
     relacion.fecha_recepcion = new Date();
 
-    // ✅ Generar PDF con utilidad externa
     const rutaRelativa = await generarPDFConfirmacion({
       documento: relacion.documento,
       usuario: relacion.usuario,
@@ -236,6 +284,7 @@ export const confirmarRecepcionDocumento = async (req: Request, res: Response): 
   }
 };
 
+/** Confirmaciones por documento */
 export const obtenerConfirmacionesDocumento = async (req: Request, res: Response): Promise<void> => {
   try {
     const confirmaciones = await RelDocumentoUsuario.findAll({
@@ -246,20 +295,22 @@ export const obtenerConfirmacionesDocumento = async (req: Request, res: Response
       ],
     });
 
-    const datos = confirmaciones.map((relacion) => {
-      if (!relacion.usuario || !relacion.documento) return null;
-      return {
-        id: relacion.id,
-        usuario_id: relacion.usuario.id,
-        nombre_usuario: `${relacion.usuario.nombre} ${relacion.usuario.apellido}`,
-        correo_usuario: relacion.usuario.correo,
-        documento_id: relacion.documento.id,
-        nombre_documento: relacion.documento.nombre,
-        tipo_documento: relacion.documento.tipo,
-        fecha_recepcion: relacion.fecha_recepcion,
-        constancia_pdf: relacion.ruta_constancia_pdf ?? null,
-      };
-    }).filter((r): r is NonNullable<typeof r> => r !== null);
+    const datos = confirmaciones
+      .map((relacion) => {
+        if (!relacion.usuario || !relacion.documento) return null;
+        return {
+          id: relacion.id,
+          usuario_id: relacion.usuario.id,
+          nombre_usuario: `${relacion.usuario.nombre} ${relacion.usuario.apellido}`,
+          correo_usuario: relacion.usuario.correo,
+          documento_id: relacion.documento.id,
+          nombre_documento: relacion.documento.nombre,
+          tipo_documento: relacion.documento.tipo,
+          fecha_recepcion: relacion.fecha_recepcion,
+          constancia_pdf: relacion.ruta_constancia_pdf ?? null,
+        };
+      })
+      .filter((r): r is NonNullable<typeof r> => r !== null);
 
     res.status(200).json(datos);
   } catch (error) {

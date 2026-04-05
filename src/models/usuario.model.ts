@@ -18,14 +18,28 @@ export interface UsuarioAttributes {
   salt: string;
   activo: boolean;
   fecha_creacion?: Date;
-  firma_imagen_url?: string; 
+  firma_imagen_url?: string;
+  /** 👇 nuevos campos */
+  foto_url?: string;
+  contacto_emergencia_nombre?: string;
+  contacto_emergencia_telefono?: string;
 }
 
 // Tipos para creación
 export interface UsuarioCreationAttributes
   extends Optional<
     UsuarioAttributes,
-    'id' | 'telefono' | 'faena_id' | 'fecha_nacimiento' | 'fecha_contrato' | 'tipo_contrato' | 'fecha_creacion' | 'firma_imagen_url'
+    | 'id'
+    | 'telefono'
+    | 'faena_id'
+    | 'fecha_nacimiento'
+    | 'fecha_contrato'
+    | 'tipo_contrato'
+    | 'fecha_creacion'
+    | 'firma_imagen_url'
+    | 'foto_url'
+    | 'contacto_emergencia_nombre'
+    | 'contacto_emergencia_telefono'
   > {}
 
 export class Usuario
@@ -47,7 +61,11 @@ export class Usuario
   public salt!: string;
   public activo!: boolean;
   public fecha_creacion?: Date;
-  public firma_imagen_url?: string; 
+  public firma_imagen_url?: string;
+  /** 👇 nuevos campos */
+  public foto_url?: string;
+  public contacto_emergencia_nombre?: string;
+  public contacto_emergencia_telefono?: string;
 }
 
 export function initUsuario(sequelize: Sequelize): typeof Usuario {
@@ -75,7 +93,7 @@ export function initUsuario(sequelize: Sequelize): typeof Usuario {
         allowNull: false,
       },
       telefono: {
-        type: DataTypes.STRING,
+        type: DataTypes.STRING(50),
         allowNull: true,
       },
       fecha_nacimiento: {
@@ -87,7 +105,7 @@ export function initUsuario(sequelize: Sequelize): typeof Usuario {
         allowNull: true,
       },
       tipo_contrato: {
-        type: DataTypes.STRING,
+        type: DataTypes.STRING(50),
         allowNull: true,
       },
       rol_id: {
@@ -116,6 +134,19 @@ export function initUsuario(sequelize: Sequelize): typeof Usuario {
       },
       firma_imagen_url: {
         type: DataTypes.STRING(255),
+        allowNull: true,
+      },
+      /** 👇 nuevos campos */
+      foto_url: {
+        type: DataTypes.STRING(255),
+        allowNull: true,
+      },
+      contacto_emergencia_nombre: {
+        type: DataTypes.STRING(255),
+        allowNull: true,
+      },
+      contacto_emergencia_telefono: {
+        type: DataTypes.STRING(50),
         allowNull: true,
       },
     },

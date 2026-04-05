@@ -8,21 +8,15 @@ export interface RelacionDocumentoUsuarioAttributes {
   documento_id: number;
   usuario_id: number;
   fecha_asignacion?: Date;
-  activo: boolean;
   recepcionado?: boolean;
   fecha_recepcion?: Date | null;
-  ruta_constancia_pdf?: string | null; 
+  ruta_constancia_pdf?: string | null;
 }
 
 interface RelacionDocumentoUsuarioCreationAttributes
   extends Optional<
     RelacionDocumentoUsuarioAttributes,
-    | 'id'
-    | 'fecha_asignacion'
-    | 'activo'
-    | 'recepcionado'
-    | 'fecha_recepcion'
-    | 'ruta_constancia_pdf' 
+    'id' | 'fecha_asignacion' | 'recepcionado' | 'fecha_recepcion' | 'ruta_constancia_pdf'
   > {}
 
 export class RelacionDocumentoUsuarioModel
@@ -36,12 +30,11 @@ export class RelacionDocumentoUsuarioModel
   public documento_id!: number;
   public usuario_id!: number;
   public fecha_asignacion!: Date;
-  public activo!: boolean;
   public recepcionado!: boolean;
   public fecha_recepcion!: Date | null;
-  public ruta_constancia_pdf!: string | null; 
+  public ruta_constancia_pdf!: string | null;
 
-  // ✅ Relaciones correctamente tipadas
+  // Relaciones tipadas (opcionales)
   public documento?: DocumentoModel;
   public usuario?: Usuario;
 }
@@ -74,10 +67,6 @@ export const initRelDocumentoUsuario = (sequelize: Sequelize) => {
         type: DataTypes.DATE,
         defaultValue: DataTypes.NOW,
       },
-      activo: {
-        type: DataTypes.BOOLEAN,
-        defaultValue: true,
-      },
       recepcionado: {
         type: DataTypes.BOOLEAN,
         defaultValue: false,
@@ -89,7 +78,7 @@ export const initRelDocumentoUsuario = (sequelize: Sequelize) => {
       ruta_constancia_pdf: {
         type: DataTypes.STRING,
         allowNull: true,
-      }, // ✅ Definición del nuevo campo en Sequelize
+      },
     },
     {
       sequelize,

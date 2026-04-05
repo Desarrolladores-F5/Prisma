@@ -9,7 +9,6 @@ export interface DocumentoAttributes {
   url: string;
   version: string;
   fecha_creacion?: Date;
-  activo: boolean;
 }
 
 interface DocumentoCreationAttributes
@@ -24,12 +23,11 @@ export class DocumentoModel
   public url!: string;
   public version!: string;
   public fecha_creacion!: Date;
-  public activo!: boolean;
 }
 
 export const Documento = sequelize.define<DocumentoModel>('documento', {
   id: {
-    type: DataTypes.INTEGER.UNSIGNED, // ✅ Corrección aplicada aquí
+    type: DataTypes.INTEGER.UNSIGNED,
     autoIncrement: true,
     primaryKey: true,
   },
@@ -52,10 +50,6 @@ export const Documento = sequelize.define<DocumentoModel>('documento', {
   fecha_creacion: {
     type: DataTypes.DATE,
     defaultValue: DataTypes.NOW,
-  },
-  activo: {
-    type: DataTypes.BOOLEAN,
-    defaultValue: true,
   },
 }, {
   tableName: 'documentos',

@@ -135,6 +135,14 @@ Faena.hasMany(Inspeccion, { foreignKey: 'faena_id', as: 'inspecciones' });
 Inspeccion.belongsTo(Usuario, { foreignKey: 'inspector_id', as: 'inspector' });
 Usuario.hasMany(Inspeccion, { foreignKey: 'inspector_id', as: 'inspecciones_realizadas' });
 
+// 🔗 Asociación entre Comentario y Usuario
+Comentario.belongsTo(Usuario, { foreignKey: 'autor_id', as: 'autor' });
+Usuario.hasMany(Comentario, { foreignKey: 'autor_id', as: 'comentarios' });
+
+// 🔗 Asociación entre HistorialCambio y Usuario
+HistorialCambio.belongsTo(Usuario, { foreignKey: 'usuario_id', as: 'usuario' });
+Usuario.hasMany(HistorialCambio, { foreignKey: 'usuario_id', as: 'historial_cambios' });
+
 // 🔁 Corrección aquí — relación entre FirmaDigital, Usuario y Documento
 FirmaDigital.belongsTo(Usuario, { foreignKey: 'firmante_id', as: 'firmante' });
 Usuario.hasMany(FirmaDigital, { foreignKey: 'firmante_id', as: 'firmas_digitales' });

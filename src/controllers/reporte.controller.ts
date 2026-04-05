@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import { Reporte, Faena, Auditoria, Usuario, Rol } from '../models';
+import { Reporte, Faena, Usuario, Rol } from '../models'; // Auditoria removido
 import jwt from 'jsonwebtoken';
 
 // Crear reporte
@@ -16,7 +16,7 @@ export const crearReporte = async (req: Request, res: Response): Promise<void> =
     const usuario_id = decoded.id;
 
     const nuevoReporte = await Reporte.create({
-      ...req.body,
+      ...req.body,        // el frontend ya no envía auditoria_id
       usuario_id,
       activo: true,
     });
@@ -28,28 +28,21 @@ export const crearReporte = async (req: Request, res: Response): Promise<void> =
   }
 };
 
-// Obtener todos los reportes con faena, auditoría y usuario con rol
+// Obtener todos los reportes con faena y usuario (con su rol)
 export const obtenerReportes = async (_req: Request, res: Response): Promise<void> => {
   try {
     const reportes = await Reporte.findAll({
       where: { activo: true },
       include: [
         { model: Faena, as: 'faena' },
-        { model: Auditoria, as: 'auditoria' },
         {
           model: Usuario,
           as: 'usuario',
           attributes: ['id', 'nombre', 'apellido', 'correo'],
-          include: [
-            {
-              model: Rol,
-              as: 'rol',
-              attributes: ['nombre']
-            }
-          ]
-        }
+          include: [{ model: Rol, as: 'rol', attributes: ['nombre'] }],
+        },
       ],
-      order: [['fecha_creacion', 'DESC']]
+      order: [['fecha_creacion', 'DESC']],
     });
 
     res.status(200).json(reportes);
@@ -70,7 +63,7 @@ export const actualizarReporte = async (req: Request, res: Response): Promise<vo
       return;
     }
 
-    await reporte.update(req.body);
+    await reporte.update(req.body); // auditoria_id no llegará desde el frontend
     res.json({ mensaje: '✅ Reporte actualizado correctamente', id: reporte.id });
   } catch (error) {
     console.error('❌ Error al actualizar reporte:', error);
@@ -97,7 +90,7 @@ export const eliminarReporte = async (req: Request, res: Response): Promise<void
   }
 };
 
-// Obtener reportes solo del usuario autenticado (trabajador)
+// Obtener reportes del usuario autenticado (trabajador)
 export const obtenerReportesDelUsuario = async (req: Request, res: Response): Promise<void> => {
   try {
     const authHeader = req.headers.authorization;
@@ -114,9 +107,9 @@ export const obtenerReportesDelUsuario = async (req: Request, res: Response): Pr
       where: { usuario_id, activo: true },
       include: [
         { model: Faena, as: 'faena', attributes: ['nombre'] },
-        { model: Auditoria, as: 'auditoria', attributes: ['tipo'] }
+        // Auditoría removida
       ],
-      order: [['fecha_creacion', 'DESC']]
+      order: [['fecha_creacion', 'DESC']],
     });
 
     res.status(200).json(reportes);
