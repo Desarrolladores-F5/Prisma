@@ -25,7 +25,6 @@ export const registrarHistorial = async ({
       usuario_id,
       accion,
       detalles,
-      fecha: new Date(), // Si el modelo lo permite, se recomienda fijar la fecha aquí
     });
   } catch (error) {
     console.error('❌ Error al registrar historial:', error);

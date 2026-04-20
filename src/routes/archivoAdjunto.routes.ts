@@ -1,19 +1,14 @@
 // src/routes/archivoAdjunto.routes.ts
-import { Router } from 'express';
-import {
-  obtenerArchivos,
-  crearArchivo,
-  actualizarArchivo,
-  eliminarArchivo
-} from '../controllers/archivoAdjunto.controller';
-import { validarToken } from '../middlewares/validarToken';
-import { esAdministrador } from '../middlewares/roles';
+import { Router } from "express";
+import { subirArchivo } from "../controllers/upload.controller";
+import { validarToken } from "../middlewares/validarToken";
 
 const router = Router();
 
-router.get('/', validarToken, obtenerArchivos);
-router.post('/', validarToken, esAdministrador, crearArchivo);
-router.put('/:id', validarToken, esAdministrador, actualizarArchivo);
-router.delete('/:id', validarToken, esAdministrador, eliminarArchivo);
+/**
+ * POST /api/archivos
+ * Subir archivo
+ */
+router.post("/", validarToken, subirArchivo);
 
 export default router;
